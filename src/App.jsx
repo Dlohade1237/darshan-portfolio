@@ -8,7 +8,7 @@ import StatsMarquee from "./sections/StatsMarquee";
 import About from "./sections/About";
 import Projects from "./sections/Projects";
 import Approach from "./sections/Approach";
-import Journey from "./sections/myJourney";
+import Journey from "./sections/Journey";
 import CTA from "./sections/CTA";
 import Footer from "./sections/Footer";
 
