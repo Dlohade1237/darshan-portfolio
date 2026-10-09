@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 
+import { Analytics } from "@vercel/analytics/react";
+
 import Header from "./components/Header";
 import Loader from "./components/Loader";
 
@@ -17,7 +19,6 @@ export default function App() {
 
   return (
     <div className="app">
-
       {isLoading && (
         <Loader
           onComplete={() => setIsLoading(false)}
@@ -41,6 +42,8 @@ export default function App() {
       <CTA />
 
       <Footer />
+
+      <Analytics />
 
     </div>
   );
