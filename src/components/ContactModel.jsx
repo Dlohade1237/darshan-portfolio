@@ -2,17 +2,39 @@ import React, { useEffect, useState } from "react";
 
 const FORMSPREE_ENDPOINT = "https://formspree.io/f/xvkzaypk";
 
+const EMPTY_STATUS = {
+  type: "",
+  message: "",
+};
+
 export default function ContactModal({ isOpen, onClose }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionStatus, setSubmissionStatus] = useState({
-    type: "",
-    message: "",
-  });
+  const [showThankYou, setShowThankYou] = useState(false);
+  const [submissionStatus, setSubmissionStatus] =
+    useState(EMPTY_STATUS);
+
+  /* =========================================================
+     BODY SCROLL LOCK
+  ========================================================= */
 
   useEffect(() => {
     if (!isOpen) return;
 
     const previousOverflow = document.body.style.overflow;
+
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
+
+  /* =========================================================
+     KEYBOARD — ESCAPE
+  ========================================================= */
+
+  useEffect(() => {
+    if (!isOpen) return;
 
     const handleKeyDown = (event) => {
       if (event.key === "Escape" && !isSubmitting) {
@@ -21,43 +43,49 @@ export default function ContactModal({ isOpen, onClose }) {
     };
 
     document.addEventListener("keydown", handleKeyDown);
-    document.body.style.overflow = "hidden";
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
     };
   }, [isOpen, isSubmitting, onClose]);
 
+  /* =========================================================
+     RESET WHEN MODAL CLOSES
+  ========================================================= */
+
   useEffect(() => {
-    if (!isOpen) {
-      setIsSubmitting(false);
-      setSubmissionStatus({ type: "", message: "" });
-    }
+    if (isOpen) return;
+
+    setIsSubmitting(false);
+    setShowThankYou(false);
+    setSubmissionStatus(EMPTY_STATUS);
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  /* =========================================================
+     SUBMIT FORM TO FORMSPREE
+  ========================================================= */
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (isSubmitting) return;
 
-    setIsSubmitting(true);
-    setSubmissionStatus({ type: "", message: "" });
-
     const form = event.currentTarget;
     const formData = new FormData(form);
 
-    const senderName = formData.get("name");
-    const senderEmail = formData.get("email");
+    const senderName = String(formData.get("name") || "").trim();
+    const senderEmail = String(formData.get("email") || "").trim();
 
-    formData.append(
+    setIsSubmitting(true);
+    setSubmissionStatus(EMPTY_STATUS);
+
+    // Formspree email subject and reply-to address
+    formData.set(
       "_subject",
-      `New portfolio enquiry from ${senderName}`
+      `New portfolio enquiry from ${senderName || "a visitor"}`
     );
 
-    formData.append("_replyto", senderEmail);
+    formData.set("_replyto", senderEmail);
 
     try {
       const response = await fetch(FORMSPREE_ENDPOINT, {
@@ -71,24 +99,22 @@ export default function ContactModal({ isOpen, onClose }) {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        const errorMessage = result.errors
+        const apiMessage = result.errors
           ?.map((error) => error.message)
           .filter(Boolean)
           .join(" ");
 
         throw new Error(
-          errorMessage ||
-            "Your message could not be sent. Please try again."
+          apiMessage ||
+            "Your message couldn't be sent. Please try again."
         );
       }
 
+      // Clear the form and show the thank-you popup
       form.reset();
 
-      setSubmissionStatus({
-        type: "success",
-        message:
-          "Thanks for reaching out! Your message has been sent successfully.",
-      });
+      setSubmissionStatus(EMPTY_STATUS);
+      setShowThankYou(true);
     } catch (error) {
       setSubmissionStatus({
         type: "error",
@@ -101,9 +127,23 @@ export default function ContactModal({ isOpen, onClose }) {
     }
   };
 
+  /* =========================================================
+     CLOSE THANK-YOU + CONTACT MODAL
+  ========================================================= */
+
+  const closeThankYou = () => {
+    setShowThankYou(false);
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
   return (
     <div className="contact-modal">
-      {/* Backdrop */}
+      {/* =====================================================
+          BACKDROP
+      ===================================================== */}
+
       <button
         type="button"
         className="contact-modal-backdrop"
@@ -112,7 +152,10 @@ export default function ContactModal({ isOpen, onClose }) {
         disabled={isSubmitting}
       />
 
-      {/* Modal */}
+      {/* =====================================================
+          CONTACT MODAL
+      ===================================================== */}
+
       <div
         className="contact-modal-card"
         role="dialog"
@@ -143,12 +186,14 @@ export default function ContactModal({ isOpen, onClose }) {
               stroke="currentColor"
               strokeWidth="1.5"
             />
+
             <path
               d="M8 8L18 18"
               stroke="currentColor"
               strokeWidth="1.5"
               strokeLinecap="round"
             />
+
             <path
               d="M18 8L8 18"
               stroke="currentColor"
@@ -178,7 +223,10 @@ export default function ContactModal({ isOpen, onClose }) {
           </p>
         </div>
 
-        {/* Form */}
+        {/* ===================================================
+            CONTACT FORM
+        =================================================== */}
+
         <form
           className="contact-form"
           onSubmit={handleSubmit}
@@ -196,8 +244,8 @@ export default function ContactModal({ isOpen, onClose }) {
               placeholder="what should i call you?"
               autoComplete="name"
               required
-              disabled={isSubmitting}
               maxLength={120}
+              disabled={isSubmitting}
             />
           </div>
 
@@ -214,8 +262,8 @@ export default function ContactModal({ isOpen, onClose }) {
               placeholder="please provide your email address."
               autoComplete="email"
               required
-              disabled={isSubmitting}
               maxLength={254}
+              disabled={isSubmitting}
             />
           </div>
 
@@ -231,8 +279,8 @@ export default function ContactModal({ isOpen, onClose }) {
               type="tel"
               placeholder="what is your contact number?"
               autoComplete="tel"
-              disabled={isSubmitting}
               maxLength={30}
+              disabled={isSubmitting}
             />
           </div>
 
@@ -248,27 +296,28 @@ export default function ContactModal({ isOpen, onClose }) {
               placeholder="tell me a little about your project, idea, or challenge..."
               rows="3"
               required
-              disabled={isSubmitting}
               maxLength={5000}
+              disabled={isSubmitting}
             />
           </div>
 
-          {/* Submission feedback */}
+          {/* Submission error */}
           {submissionStatus.message && (
             <p
               className={`contact-form-status contact-form-status--${submissionStatus.type}`}
-              role={submissionStatus.type === "error" ? "alert" : "status"}
+              role="alert"
               aria-live="polite"
             >
               {submissionStatus.message}
             </p>
           )}
 
-          {/* Submit */}
+          {/* Submit button */}
           <button
             type="submit"
             className="contact-submit"
             disabled={isSubmitting}
+            aria-busy={isSubmitting}
           >
             <span>
               {isSubmitting ? "SENDING..." : "SEND MESSAGE"}
@@ -291,6 +340,7 @@ export default function ContactModal({ isOpen, onClose }) {
                     strokeWidth="2"
                     strokeLinecap="round"
                   />
+
                   <path
                     d="M11 2H20V11"
                     stroke="currentColor"
@@ -319,6 +369,86 @@ export default function ContactModal({ isOpen, onClose }) {
           </div>
         </form>
       </div>
+
+      {/* =====================================================
+          THANK-YOU POPUP
+          Appears only after successful submission
+      ===================================================== */}
+
+      {showThankYou && (
+        <div
+          className="contact-thankyou-overlay"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              closeThankYou();
+            }
+          }}
+        >
+          <div
+            className="contact-thankyou-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="contact-thankyou-title"
+            aria-describedby="contact-thankyou-description"
+          >
+            {/* Close */}
+            <button
+              type="button"
+              className="contact-thankyou-close"
+              aria-label="Close thank-you message"
+              onClick={closeThankYou}
+              autoFocus
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+
+            {/* Success icon */}
+            <div
+              className="contact-thankyou-icon"
+              aria-hidden="true"
+            >
+              <svg
+                width="30"
+                height="30"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M5 12.5L10 17L19 7"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+
+            {/* Content */}
+            <span className="contact-thankyou-eyebrow">
+              MESSAGE SENT
+            </span>
+
+            <h2 id="contact-thankyou-title">
+              Thank You!
+            </h2>
+
+            <p id="contact-thankyou-description">
+              Thanks for reaching out. Your message has been sent
+              successfully. I&apos;ll get back to you as soon as I can.
+            </p>
+
+            {/* Return to portfolio */}
+            <button
+              type="button"
+              className="contact-thankyou-button"
+              onClick={closeThankYou}
+            >
+              <span>BACK TO PORTFOLIO</span>
+              <span aria-hidden="true">↗</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

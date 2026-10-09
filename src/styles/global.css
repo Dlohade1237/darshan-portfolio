@@ -10116,6 +10116,318 @@ body.mobile-menu-open {
 }
 
 /* =========================================================
+   CONTACT FORM — SUBMISSION FEEDBACK
+========================================================= */
+
+.contact-form-status {
+  margin: 14px 0 0;
+  font-family: "Satoshi", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.contact-form-status--error {
+  color: #c62828;
+}
+
+.contact-submit:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+
+/* =========================================================
+   THANK-YOU OVERLAY
+========================================================= */
+
+.contact-thankyou-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+  box-sizing: border-box;
+
+  background: rgba(8, 8, 10, 0.72);
+
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+
+  animation: contact-thankyou-fade-in 250ms ease both;
+}
+
+
+/* =========================================================
+   THANK-YOU CARD
+========================================================= */
+
+.contact-thankyou-card {
+  position: relative;
+
+  width: min(460px, 100%);
+  padding: 48px 36px 36px;
+  box-sizing: border-box;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+
+  background: #f3f3f3;
+  color: #171717;
+
+  text-align: center;
+
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.32);
+
+  animation: contact-thankyou-card-in 450ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+
+/* =========================================================
+   CLOSE BUTTON
+========================================================= */
+
+.contact-thankyou-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 36px;
+  height: 36px;
+  padding: 0;
+
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 50%;
+
+  background: transparent;
+  color: #171717;
+
+  font-family: "Satoshi", sans-serif;
+  font-size: 25px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background 200ms ease,
+    color 200ms ease;
+}
+
+.contact-thankyou-close:hover {
+  background: #171717;
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   SUCCESS ICON
+========================================================= */
+
+.contact-thankyou-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 24px;
+
+  border-radius: 50%;
+
+  background: rgba(2, 72, 232, 0.09);
+  color: #0248e8;
+}
+
+
+/* =========================================================
+   EYEBROW
+========================================================= */
+
+.contact-thankyou-eyebrow {
+  display: block;
+  margin-bottom: 14px;
+
+  font-family: "Satoshi", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+
+  letter-spacing: 0.16em;
+
+  color: #0248e8;
+}
+
+
+/* =========================================================
+   HEADING
+========================================================= */
+
+.contact-thankyou-card h2 {
+  margin: 0;
+
+  font-family: "Satoshi", sans-serif;
+  font-size: clamp(32px, 6vw, 42px);
+  font-weight: 800;
+  line-height: 1.1;
+
+  letter-spacing: -0.04em;
+
+  color: #171717;
+}
+
+
+/* =========================================================
+   DESCRIPTION
+========================================================= */
+
+.contact-thankyou-card p {
+  max-width: 340px;
+  margin: 18px auto 0;
+
+  font-family: "Satoshi", sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.7;
+
+  color: #606060;
+}
+
+
+/* =========================================================
+   RETURN BUTTON
+========================================================= */
+
+.contact-thankyou-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  width: 100%;
+  min-height: 54px;
+  margin-top: 30px;
+  padding: 0 20px;
+
+  border: 1px solid #171717;
+  border-radius: 7px;
+
+  background: #171717;
+  color: #ffffff;
+
+  font-family: "Satoshi", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+
+  cursor: pointer;
+
+  transition:
+    background 200ms ease,
+    border-color 200ms ease;
+}
+
+.contact-thankyou-button:hover {
+  border-color: #0248e8;
+  background: #0248e8;
+}
+
+.contact-thankyou-button span:last-child {
+  font-size: 20px;
+  font-weight: 400;
+
+  transition: transform 200ms ease;
+}
+
+.contact-thankyou-button:hover span:last-child {
+  transform: translate(2px, -2px);
+}
+
+
+/* =========================================================
+   ANIMATIONS
+========================================================= */
+
+@keyframes contact-thankyou-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes contact-thankyou-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 576px) {
+  .contact-thankyou-overlay {
+    padding: 20px;
+  }
+
+  .contact-thankyou-card {
+    padding: 44px 24px 26px;
+    border-radius: 16px;
+  }
+
+  .contact-thankyou-icon {
+    width: 54px;
+    height: 54px;
+    margin-bottom: 20px;
+  }
+
+  .contact-thankyou-card p {
+    font-size: 14px;
+  }
+
+  .contact-thankyou-button {
+    min-height: 50px;
+    padding: 0 16px;
+    font-size: 11px;
+  }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-thankyou-overlay,
+  .contact-thankyou-card {
+    animation: none;
+  }
+
+  .contact-thankyou-close,
+  .contact-thankyou-button,
+  .contact-thankyou-button span:last-child {
+    transition: none;
+  }
+}
+
+/* =========================================================
    PAGE LOADER
 ========================================================= */
 
