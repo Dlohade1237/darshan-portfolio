@@ -1,44 +1,115 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/xvkzaypk";
 
 export default function ContactModal({ isOpen, onClose }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState({
+    type: "",
+    message: "",
+  });
+
   useEffect(() => {
     if (!isOpen) return;
 
+    const previousOverflow = document.body.style.overflow;
+
     const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
+      if (event.key === "Escape" && !isSubmitting) {
         onClose();
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
-
-    // Prevent background scrolling while modal is open
     document.body.style.overflow = "hidden";
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
+      document.body.style.overflow = previousOverflow;
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, isSubmitting, onClose]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setIsSubmitting(false);
+      setSubmissionStatus({ type: "", message: "" });
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
-    // Form submission will be connected later.
-    console.log("Contact form submitted");
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    setSubmissionStatus({ type: "", message: "" });
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    const senderName = formData.get("name");
+    const senderEmail = formData.get("email");
+
+    formData.append(
+      "_subject",
+      `New portfolio enquiry from ${senderName}`
+    );
+
+    formData.append("_replyto", senderEmail);
+
+    try {
+      const response = await fetch(FORMSPREE_ENDPOINT, {
+        method: "POST",
+        body: formData,
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const errorMessage = result.errors
+          ?.map((error) => error.message)
+          .filter(Boolean)
+          .join(" ");
+
+        throw new Error(
+          errorMessage ||
+            "Your message could not be sent. Please try again."
+        );
+      }
+
+      form.reset();
+
+      setSubmissionStatus({
+        type: "success",
+        message:
+          "Thanks for reaching out! Your message has been sent successfully.",
+      });
+    } catch (error) {
+      setSubmissionStatus({
+        type: "error",
+        message:
+          error.message ||
+          "Something went wrong. Please try again or email me directly.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="contact-modal">
-
       {/* Backdrop */}
       <button
         type="button"
         className="contact-modal-backdrop"
         aria-label="Close contact form"
         onClick={onClose}
+        disabled={isSubmitting}
       />
 
       {/* Modal */}
@@ -54,6 +125,7 @@ export default function ContactModal({ isOpen, onClose }) {
           className="contact-modal-close"
           onClick={onClose}
           aria-label="Close"
+          disabled={isSubmitting}
         >
           <svg
             width="26"
@@ -92,7 +164,10 @@ export default function ContactModal({ isOpen, onClose }) {
             LET’S TALK
           </div>
 
-          <h2 id="contact-modal-title" className="contact-modal-title">
+          <h2
+            id="contact-modal-title"
+            className="contact-modal-title"
+          >
             <span>Have Something</span>
             <span>In Mind?</span>
           </h2>
@@ -121,6 +196,8 @@ export default function ContactModal({ isOpen, onClose }) {
               placeholder="what should i call you?"
               autoComplete="name"
               required
+              disabled={isSubmitting}
+              maxLength={120}
             />
           </div>
 
@@ -137,6 +214,8 @@ export default function ContactModal({ isOpen, onClose }) {
               placeholder="please provide your email address."
               autoComplete="email"
               required
+              disabled={isSubmitting}
+              maxLength={254}
             />
           </div>
 
@@ -152,6 +231,8 @@ export default function ContactModal({ isOpen, onClose }) {
               type="tel"
               placeholder="what is your contact number?"
               autoComplete="tel"
+              disabled={isSubmitting}
+              maxLength={30}
             />
           </div>
 
@@ -167,17 +248,34 @@ export default function ContactModal({ isOpen, onClose }) {
               placeholder="tell me a little about your project, idea, or challenge..."
               rows="3"
               required
+              disabled={isSubmitting}
+              maxLength={5000}
             />
           </div>
+
+          {/* Submission feedback */}
+          {submissionStatus.message && (
+            <p
+              className={`contact-form-status contact-form-status--${submissionStatus.type}`}
+              role={submissionStatus.type === "error" ? "alert" : "status"}
+              aria-live="polite"
+            >
+              {submissionStatus.message}
+            </p>
+          )}
 
           {/* Submit */}
           <button
             type="submit"
             className="contact-submit"
-            >
-            <span>SEND MESSAGE</span>
+            disabled={isSubmitting}
+          >
+            <span>
+              {isSubmitting ? "SENDING..." : "SEND MESSAGE"}
+            </span>
 
-            <svg
+            {!isSubmitting && (
+              <svg
                 className="contact-submit-arrow"
                 width="20"
                 height="20"
@@ -185,43 +283,40 @@ export default function ContactModal({ isOpen, onClose }) {
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
                 aria-hidden="true"
-            >
+              >
                 <g className="contact-submit-arrow-icon">
-                <path
+                  <path
                     d="M2 18L20 2"
                     stroke="currentColor"
                     strokeWidth="2"
                     strokeLinecap="round"
-                />
-                <path
+                  />
+                  <path
                     d="M11 2H20V11"
                     stroke="currentColor"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                />
+                  />
                 </g>
-            </svg>
-            </button>
+              </svg>
+            )}
+          </button>
 
-            {/* Email alternative */}
-            <div className="contact-email-alternative">
+          {/* Email alternative */}
+          <div className="contact-email-alternative">
             <span className="contact-email-label">
-                prefer email?
+              prefer email?
             </span>
 
             <a
-                href="mailto:darshanlohade.edu@gmail.com"
-                className="contact-email-link"
+              href="mailto:darshanlohade.edu@gmail.com"
+              className="contact-email-link"
             >
-                <span>darshanlohade.edu@gmail.com</span>
-
-                <span className="contact-email-arrow">
-                ↗
-                </span>
+              <span>darshanlohade.edu@gmail.com</span>
+              <span className="contact-email-arrow">↗</span>
             </a>
-            </div>
-
+          </div>
         </form>
       </div>
     </div>

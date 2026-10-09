@@ -10092,6 +10092,30 @@ body.mobile-menu-open {
 }
 
 /* =========================================================
+   CONTACT FORM — SUBMISSION FEEDBACK
+========================================================= */
+
+.contact-form-status {
+  margin: 14px 0 0;
+  font-family: "Satoshi", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.contact-form-status--success {
+  color: #167044;
+}
+
+.contact-form-status--error {
+  color: #c62828;
+}
+
+.contact-submit:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+/* =========================================================
    PAGE LOADER
 ========================================================= */
 
