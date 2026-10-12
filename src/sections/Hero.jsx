@@ -1,11 +1,29 @@
 import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 
-const musicImages = Array.from(
-  { length: 21 },
-  (_, index) =>
-    `/assets/music/image_${String(index + 1).padStart(2, "0")}.png`
-);
+const musicImages = [
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_01.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_02.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_03.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_04.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_05.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_06.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_07.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_08.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_09.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_10.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_11.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_12.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_13.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_14.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_15.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_16.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_17.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_18.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_19.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_20.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_21.png",
+];
 
 export default function Hero() {
   const heroRef = useRef(null);
@@ -143,7 +161,7 @@ export default function Hero() {
           preload="metadata"
         >
           <source
-            src="/assets/hero_section_bg.mp4"
+            src="https://res.cloudinary.com/m1xt1lo4/video/upload/q_auto/v1791813649/hero_section_bg.mp4"
             type="video/mp4"
           />
         </video>
