@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 
-const LOADER_VIDEO = "/assets/hero_section_bg.mp4";
+const LOADER_VIDEO =
+  "https://res.cloudinary.com/m1xt1lo4/video/upload/q_auto/v1791813649/hero_section_bg.mp4";
+
 const LOADER_NAME = "DARSHAN LOHADE";
 const SHARD_COUNT = 18;
 
@@ -59,21 +61,9 @@ export default function Loader({ onComplete }) {
 
     if (!ctx) return;
 
-    ctx.setTransform(
-      dpr,
-      0,
-      0,
-      dpr,
-      0,
-      0
-    );
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    ctx.clearRect(
-      0,
-      0,
-      width,
-      height
-    );
+    ctx.clearRect(0, 0, width, height);
 
     /* =======================================================
        VIDEO COVER
@@ -89,11 +79,8 @@ export default function Loader({ onComplete }) {
       return;
     }
 
-    const videoRatio =
-      videoWidth / videoHeight;
-
-    const canvasRatio =
-      width / height;
+    const videoRatio = videoWidth / videoHeight;
+    const canvasRatio = width / height;
 
     let drawWidth;
     let drawHeight;
@@ -104,18 +91,14 @@ export default function Loader({ onComplete }) {
       drawHeight = height;
       drawWidth = height * videoRatio;
 
-      offsetX =
-        (width - drawWidth) / 2;
-
+      offsetX = (width - drawWidth) / 2;
       offsetY = 0;
     } else {
       drawWidth = width;
       drawHeight = width / videoRatio;
 
       offsetX = 0;
-
-      offsetY =
-        (height - drawHeight) / 2;
+      offsetY = (height - drawHeight) / 2;
     }
 
     /* =======================================================
@@ -134,22 +117,17 @@ export default function Loader({ onComplete }) {
        TEXT MASK
     ======================================================= */
 
-    const isMobile =
-      window.innerWidth <= 576;
+    const isMobile = window.innerWidth <= 576;
 
     const fontSize = isMobile
       ? Math.min(36, width * 0.095)
       : Math.min(64, width * 0.084);
 
-    ctx.globalCompositeOperation =
-      "destination-in";
+    ctx.globalCompositeOperation = "destination-in";
 
-    ctx.font =
-      `900 ${fontSize}px "Satoshi", sans-serif`;
-
+    ctx.font = `900 ${fontSize}px "Satoshi", sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-
     ctx.fillStyle = "#ffffff";
 
     ctx.fillText(
@@ -158,15 +136,14 @@ export default function Loader({ onComplete }) {
       height / 2
     );
 
-    ctx.globalCompositeOperation =
-      "source-over";
+    ctx.globalCompositeOperation = "source-over";
 
     animationFrameRef.current =
       requestAnimationFrame(drawCanvas);
   };
 
   /* =========================================================
-     RESIZE
+     RESPONSIVE CANVAS SIZE
   ========================================================= */
 
   useEffect(() => {
@@ -175,30 +152,21 @@ export default function Loader({ onComplete }) {
 
       if (!canvas) return;
 
-      const isMobile =
-        window.innerWidth <= 576;
+      const isMobile = window.innerWidth <= 576;
 
       canvas.style.width = isMobile
         ? "calc(100% - 32px)"
         : "min(760px, calc(100% - 48px))";
 
-      canvas.style.height = isMobile
-        ? "80px"
-        : "120px";
+      canvas.style.height = isMobile ? "80px" : "120px";
     };
 
     handleResize();
 
-    window.addEventListener(
-      "resize",
-      handleResize
-    );
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      window.removeEventListener(
-        "resize",
-        handleResize
-      );
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
@@ -220,17 +188,11 @@ export default function Loader({ onComplete }) {
     if (video.readyState >= 2) {
       startCanvas();
     } else {
-      video.addEventListener(
-        "loadeddata",
-        startCanvas
-      );
+      video.addEventListener("loadeddata", startCanvas);
     }
 
     return () => {
-      video.removeEventListener(
-        "loadeddata",
-        startCanvas
-      );
+      video.removeEventListener("loadeddata", startCanvas);
     };
   }, []);
 
@@ -242,14 +204,10 @@ export default function Loader({ onComplete }) {
     let value = 0;
 
     const interval = setInterval(() => {
-      value +=
-        Math.floor(
-          Math.random() * 7
-        ) + 3;
+      value += Math.floor(Math.random() * 7) + 3;
 
       if (value >= 100) {
         value = 100;
-
         clearInterval(interval);
       }
 
@@ -270,86 +228,59 @@ export default function Loader({ onComplete }) {
 
     hasShatteredRef.current = true;
 
-    const canvas =
-      canvasRef.current;
-
-    const loader =
-      loaderRef.current;
+    const canvas = canvasRef.current;
+    const loader = loaderRef.current;
 
     if (!canvas || !loader) return;
 
     if (animationFrameRef.current) {
-      cancelAnimationFrame(
-        animationFrameRef.current
-      );
-
+      cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
-
-    const rect =
-      canvas.getBoundingClientRect();
 
     const sourceWidth = canvas.width;
     const sourceHeight = canvas.height;
 
-    const sourceCanvas =
-      document.createElement("canvas");
+    const sourceCanvas = document.createElement("canvas");
 
     sourceCanvas.width = sourceWidth;
     sourceCanvas.height = sourceHeight;
 
-    const sourceContext =
-      sourceCanvas.getContext("2d");
+    const sourceContext = sourceCanvas.getContext("2d");
 
     if (!sourceContext) return;
 
-    sourceContext.drawImage(
-      canvas,
-      0,
-      0
-    );
+    sourceContext.drawImage(canvas, 0, 0);
 
     /* =======================================================
-       BUILD SHARDS FROM THE CURRENT TEXT FRAME
+       BUILD SHARDS FROM THE RENDERED TEXT
     ======================================================= */
 
-    const shards =
-      shardsRef.current.filter(Boolean);
-
-    const shardWidth =
-      sourceWidth / SHARD_COUNT;
+    const shards = shardsRef.current.filter(Boolean);
+    const shardWidth = sourceWidth / SHARD_COUNT;
 
     shards.forEach((shard, index) => {
-      if (!shard) return;
-
-      const shardCanvas =
-        shard.querySelector(
-          ".site-loader-shard-canvas"
-        );
+      const shardCanvas = shard.querySelector(
+        ".site-loader-shard-canvas"
+      );
 
       if (!shardCanvas) return;
 
-      const shardContext =
-        shardCanvas.getContext("2d");
+      const shardContext = shardCanvas.getContext("2d");
 
       if (!shardContext) return;
 
-      const startX =
-        index * shardWidth;
+      const startX = index * shardWidth;
 
       const endX =
         index === SHARD_COUNT - 1
           ? sourceWidth
           : (index + 1) * shardWidth;
 
-      const actualWidth =
-        endX - startX;
+      const actualWidth = endX - startX;
 
-      shardCanvas.width =
-        Math.ceil(actualWidth);
-
-      shardCanvas.height =
-        sourceHeight;
+      shardCanvas.width = Math.ceil(actualWidth);
+      shardCanvas.height = sourceHeight;
 
       shardContext.clearRect(
         0,
@@ -370,12 +301,8 @@ export default function Loader({ onComplete }) {
         sourceHeight
       );
 
-      shard.style.left =
-        `${(index / SHARD_COUNT) * 100}%`;
-
-      shard.style.width =
-        `${100 / SHARD_COUNT}%`;
-
+      shard.style.left = `${(index / SHARD_COUNT) * 100}%`;
+      shard.style.width = `${100 / SHARD_COUNT}%`;
       shard.style.height = "100%";
 
       gsap.set(shard, {
@@ -387,86 +314,45 @@ export default function Loader({ onComplete }) {
       });
     });
 
-    /* Hide original */
-    gsap.set(canvas, {
-      opacity: 0,
+    // Hide the original word and reveal the slices.
+    gsap.set(canvas, { opacity: 0 });
+    gsap.set(shards, { opacity: 1 });
+
+    const timeline = gsap.timeline({
+      onComplete,
     });
-
-    /* Reveal shards */
-    gsap.set(
-      shards,
-      {
-        opacity: 1,
-      }
-    );
-
-    const timeline =
-      gsap.timeline({
-        onComplete,
-      });
 
     /* =======================================================
        SHATTER THE NAME
     ======================================================= */
 
-    shards.forEach(
-      (shard, index) => {
-        if (!shard) return;
+    shards.forEach((shard, index) => {
+      const center = index - (SHARD_COUNT - 1) / 2;
+      const direction = center < 0 ? -1 : 1;
 
-        const center =
-          index -
-          (SHARD_COUNT - 1) / 2;
+      const distanceX =
+        gsap.utils.random(280, 720) * direction;
 
-        const direction =
-          center < 0 ? -1 : 1;
+      const distanceY = gsap.utils.random(-320, 320);
+      const rotation = gsap.utils.random(-45, 45);
+      const scale = gsap.utils.random(0.72, 1.18);
+      const duration = gsap.utils.random(0.72, 1.08);
 
-        const distanceX =
-          gsap.utils.random(
-            280,
-            720
-          ) * direction;
-
-        const distanceY =
-          gsap.utils.random(
-            -320,
-            320
-          );
-
-        const rotation =
-          gsap.utils.random(
-            -45,
-            45
-          );
-
-        const scale =
-          gsap.utils.random(
-            0.72,
-            1.18
-          );
-
-        const duration =
-          gsap.utils.random(
-            0.72,
-            1.08
-          );
-
-        timeline.to(
-          shard,
-          {
-            x: distanceX,
-            y: distanceY,
-            rotation,
-            scale,
-            opacity: 0,
-            filter:
-              "blur(6px)",
-            duration,
-            ease: "power4.out",
-          },
-          index * 0.018
-        );
-      }
-    );
+      timeline.to(
+        shard,
+        {
+          x: distanceX,
+          y: distanceY,
+          rotation,
+          scale,
+          opacity: 0,
+          filter: "blur(6px)",
+          duration,
+          ease: "power4.out",
+        },
+        index * 0.018
+      );
+    });
 
     /* =======================================================
        PROGRESS NUMBER
@@ -498,7 +384,7 @@ export default function Loader({ onComplete }) {
     );
 
     /* =======================================================
-       LOADER LEAVES
+       LOADER EXIT
     ======================================================= */
 
     timeline.to(
@@ -534,20 +420,15 @@ export default function Loader({ onComplete }) {
 
   useEffect(() => {
     if (progressRef.current) {
-      progressRef.current.textContent =
-        progress;
+      progressRef.current.textContent = progress;
     }
 
     if (progressLineRef.current) {
-      gsap.to(
-        progressLineRef.current,
-        {
-          scaleX:
-            progress / 100,
-          duration: 0.3,
-          ease: "power2.out",
-        }
-      );
+      gsap.to(progressLineRef.current, {
+        scaleX: progress / 100,
+        duration: 0.3,
+        ease: "power2.out",
+      });
     }
   }, [progress]);
 
@@ -557,28 +438,22 @@ export default function Loader({ onComplete }) {
 
   useEffect(() => {
     return () => {
-      if (
-        animationFrameRef.current
-      ) {
-        cancelAnimationFrame(
-          animationFrameRef.current
-        );
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
       }
     };
   }, []);
 
   return (
-    <div
-      className="site-loader"
-      ref={loaderRef}
-    >
+    <div className="site-loader" ref={loaderRef}>
       {/* ===================================================
-          HIDDEN VIDEO SOURCE
+          CLOUDINARY VIDEO SOURCE
       =================================================== */}
 
       <video
         ref={videoRef}
         className="site-loader-source-video"
+        crossOrigin="anonymous"
         autoPlay
         muted
         loop
@@ -592,7 +467,7 @@ export default function Loader({ onComplete }) {
       </video>
 
       {/* ===================================================
-          ORIGINAL VIDEO-TEXT CANVAS
+          VIDEO-TEXT CANVAS
       =================================================== */}
 
       <canvas
@@ -605,15 +480,12 @@ export default function Loader({ onComplete }) {
       =================================================== */}
 
       <div className="site-loader-shards">
-        {Array.from({
-          length: SHARD_COUNT,
-        }).map((_, index) => (
+        {Array.from({ length: SHARD_COUNT }).map((_, index) => (
           <div
             key={index}
             className="site-loader-shard"
             ref={(element) => {
-              shardsRef.current[index] =
-                element;
+              shardsRef.current[index] = element;
             }}
           >
             <canvas className="site-loader-shard-canvas" />

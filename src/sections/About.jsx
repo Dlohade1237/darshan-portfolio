@@ -3,35 +3,36 @@ import React, { useEffect, useRef, useState } from "react";
 const aboutPortraits = [
   {
     id: 1,
-    src: "/assets/about-portraits/1-curious-portrait.png",
+    src: "https://res.cloudinary.com/m1xt1lo4/image/upload/w_700,c_limit,f_auto,q_auto/v1791813709/1-curious-portrait.png",
     alt: "Curious",
   },
   {
     id: 2,
-    src: "/assets/about-portraits/2-exploring-portrait.png",
+    src: "https://res.cloudinary.com/m1xt1lo4/image/upload/w_700,c_limit,f_auto,q_auto/v1791813730/2-exploring-portrait.png",
     alt: "Exploring",
   },
   {
     id: 3,
-    src: "/assets/about-portraits/3-experimenting-portrait.png",
+    src: "https://res.cloudinary.com/m1xt1lo4/image/upload/w_700,c_limit,f_auto,q_auto/v1791813772/3-experimenting-portrait.png",
     alt: "Experimenting",
   },
   {
     id: 4,
-    src: "/assets/about-portraits/4-discovering-portrait.png",
+    src: "https://res.cloudinary.com/m1xt1lo4/image/upload/w_700,c_limit,f_auto,q_auto/v1791813783/4-discovering-portrait.png",
     alt: "Discovering",
   },
   {
     id: 5,
-    src: "/assets/about-portraits/5-traditional-portrait.png",
+    src: "https://res.cloudinary.com/m1xt1lo4/image/upload/w_700,c_limit,f_auto,q_auto/v1791813785/5-traditional-portrait.png",
     alt: "Traditional",
   },
   {
     id: 6,
-    src: "/assets/about-portraits/6-creating-portrait.png",
+    src: "https://res.cloudinary.com/m1xt1lo4/image/upload/w_700,c_limit,f_auto,q_auto/v1791813749/6-creating-portrait.png",
     alt: "Creating",
   },
 ];
+
 
 export default function About() {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -470,11 +471,10 @@ export default function About() {
 
           <div className="journey-childhood-card">
 
-            <img
-              src="/assets/childhood-portrait.png"
-              alt="Darshan as a child"
-              draggable="false"
-            />
+<img
+  src="https://res.cloudinary.com/m1xt1lo4/image/upload/w_700,c_limit,f_auto,q_auto/v1791813693/childhood-portrait.png"
+  alt="Darshan's childhood portrait"
+/>
 
           </div>
 

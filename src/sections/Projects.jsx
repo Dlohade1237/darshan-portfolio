@@ -10,7 +10,8 @@ const projects = [
     description:
       "An end-to-end UX/UI redesign focused on information architecture, product discovery, responsive experiences, and a scalable design system for a complex transportation technology website.",
     cta: "VIEW CASE STUDY",
-    image: "/assets/projects/masstrans-project.png",
+image:
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_1200,c_limit,f_auto,q_auto/v1791826658/masstrans-project.png",
     layout: "normal",
     note: (
       <>
@@ -28,7 +29,8 @@ const projects = [
     description:
       "A responsive website interface designed across shopping, product discovery, product detail, brand, science, bundles, and editorial content while maintaining a consistent visual system across desktop and mobile.",
     cta: "EXPLORE PROJECT",
-    image: "/assets/projects/aceblend-project.png",
+image:
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_1200,c_limit,f_auto,q_auto/v1791826651/aceblend-project.png",
     layout: "reverse",
     note: (
       <>
@@ -46,7 +48,8 @@ const projects = [
     description:
       "A role-based hotel management system designed to simplify everyday workflows across reception and administration—from guest entry and bookings to room management, notifications, and error handling.",
     cta: "SEE OVERVIEW",
-    image: "/assets/projects/sushil-lodge-project.png",
+image:
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_1200,c_limit,f_auto,q_auto/v1791826659/sushil-lodge-project.png",
     layout: "normal",
     note: (
       <>
