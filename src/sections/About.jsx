@@ -1,46 +1,117 @@
 import React, { useEffect, useRef, useState } from "react";
 
+/* =========================================================
+   CLOUDINARY IMAGES
+   - Portraits now have a 400px and a 700px version, so
+     smaller screens don't download the larger file.
+   - f_auto serves AVIF/WebP where supported.
+   - Version numbers and filenames are the same as before.
+========================================================= */
+
+const CLOUD = "https://res.cloudinary.com/m1xt1lo4/image/upload";
+
+const cloudinaryImage = (version, file, width) =>
+  `${CLOUD}/w_${width},c_limit,f_auto,q_auto/${version}/${file}`;
+
+const PORTRAIT_WIDTHS = [400, 700];
+
+// Roughly the card's rendered width: ~80% of the screen on phones,
+// a fixed size on larger screens. Adjust 420px to match your CSS.
+const PORTRAIT_SIZES = "(max-width: 576px) 80vw, 420px";
+
 const aboutPortraits = [
-  {
-    id: 1,
-    src: "https://res.cloudinary.com/m1xt1lo4/image/upload/w_700,c_limit,f_auto,q_auto/v1791813709/1-curious-portrait.png",
-    alt: "Curious",
-  },
-  {
-    id: 2,
-    src: "https://res.cloudinary.com/m1xt1lo4/image/upload/w_700,c_limit,f_auto,q_auto/v1791813730/2-exploring-portrait.png",
-    alt: "Exploring",
-  },
-  {
-    id: 3,
-    src: "https://res.cloudinary.com/m1xt1lo4/image/upload/w_700,c_limit,f_auto,q_auto/v1791813772/3-experimenting-portrait.png",
-    alt: "Experimenting",
-  },
-  {
-    id: 4,
-    src: "https://res.cloudinary.com/m1xt1lo4/image/upload/w_700,c_limit,f_auto,q_auto/v1791813783/4-discovering-portrait.png",
-    alt: "Discovering",
-  },
-  {
-    id: 5,
-    src: "https://res.cloudinary.com/m1xt1lo4/image/upload/w_700,c_limit,f_auto,q_auto/v1791813785/5-traditional-portrait.png",
-    alt: "Traditional",
-  },
-  {
-    id: 6,
-    src: "https://res.cloudinary.com/m1xt1lo4/image/upload/w_700,c_limit,f_auto,q_auto/v1791813749/6-creating-portrait.png",
-    alt: "Creating",
-  },
+  { id: 1, version: "v1791813709", file: "1-curious-portrait.png", alt: "Curious" },
+  { id: 2, version: "v1791813730", file: "2-exploring-portrait.png", alt: "Exploring" },
+  { id: 3, version: "v1791813772", file: "3-experimenting-portrait.png", alt: "Experimenting" },
+  { id: 4, version: "v1791813783", file: "4-discovering-portrait.png", alt: "Discovering" },
+  { id: 5, version: "v1791813785", file: "5-traditional-portrait.png", alt: "Traditional" },
+  { id: 6, version: "v1791813749", file: "6-creating-portrait.png", alt: "Creating" },
 ];
 
+const buildSrcSet = (portrait) =>
+  PORTRAIT_WIDTHS.map(
+    (width) =>
+      `${cloudinaryImage(portrait.version, portrait.file, width)} ${width}w`
+  ).join(", ");
+
+// Image inside the "My Journey" popup
+const CHILDHOOD_SRC = cloudinaryImage(
+  "v1791813693",
+  "childhood-portrait.png",
+  700
+);
 
 export default function About() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
+  // Flips to true when the section is still ~1500px away
+  const [imagesWarm, setImagesWarm] = useState(false);
+
+  const sectionRef = useRef(null);
+  const childhoodPreload = useRef(null);
+
   const pointerStartX = useRef(0);
   const pointerCurrentX = useRef(0);
   const isDragging = useRef(false);
+
+  /* =========================================================
+     LOAD IMAGES BEFORE THE SECTION IS VISIBLE
+
+     The six portraits are stacked in one spot and swapped by
+     swiping. With plain lazy loading, a card could still be
+     blank the first time you swipe to it. Switching them to
+     eager just before the section arrives avoids that, without
+     loading them at page start (they'd compete with the hero).
+  ========================================================= */
+
+  useEffect(() => {
+    const section = sectionRef.current;
+
+    if (!section) return;
+
+    if (!("IntersectionObserver" in window)) {
+      setImagesWarm(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setImagesWarm(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "1500px 0px" }
+    );
+
+    observer.observe(section);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  /* =========================================================
+     PRELOAD THE POPUP IMAGE
+
+     The childhood portrait only exists inside the popup, so it
+     used to start downloading when you clicked READ MORE. It
+     is now fetched in the background with the portraits, so
+     the popup opens with the image already there.
+  ========================================================= */
+
+  useEffect(() => {
+    if (!imagesWarm) return;
+
+    const image = new Image();
+
+    image.decoding = "async";
+    image.src = CHILDHOOD_SRC;
+
+    // Keep a reference so the browser doesn't drop the request
+    childhoodPreload.current = image;
+  }, [imagesWarm]);
 
   /* =========================================================
      POPUP SCROLL LOCK
@@ -55,7 +126,6 @@ export default function About() {
       document.body.style.overflow = "";
     };
   }, [isExpanded]);
-
 
   /* =========================================================
      ESCAPE KEY
@@ -77,26 +147,20 @@ export default function About() {
     };
   }, [isExpanded]);
 
-
   /* =========================================================
      SWIPE HELPERS
   ========================================================= */
 
   const goNext = () => {
-    setActiveIndex(
-      (current) =>
-        (current + 1) % aboutPortraits.length
-    );
+    setActiveIndex((current) => (current + 1) % aboutPortraits.length);
   };
 
   const goPrevious = () => {
     setActiveIndex(
       (current) =>
-        (current - 1 + aboutPortraits.length) %
-        aboutPortraits.length
+        (current - 1 + aboutPortraits.length) % aboutPortraits.length
     );
   };
-
 
   /* =========================================================
      POINTER SWIPE
@@ -120,16 +184,12 @@ export default function About() {
   const handlePointerUp = (event) => {
     if (!isDragging.current) return;
 
-    const distance =
-      pointerCurrentX.current -
-      pointerStartX.current;
+    const distance = pointerCurrentX.current - pointerStartX.current;
 
     isDragging.current = false;
 
     try {
-      event.currentTarget.releasePointerCapture(
-        event.pointerId
-      );
+      event.currentTarget.releasePointerCapture(event.pointerId);
     } catch {
       // Pointer capture may already be released.
     }
@@ -143,32 +203,23 @@ export default function About() {
     }
   };
 
-
   return (
-    <section className="about-section" id="about">
-
+    <section className="about-section" id="about" ref={sectionRef}>
       <div className="about-inner">
-
         {/* =====================================================
             LEFT CONTENT
         ===================================================== */}
 
         <div className="about-copy">
-
-          <div className="about-eyebrow">
-            ABOUT ME
-          </div>
+          <div className="about-eyebrow">ABOUT ME</div>
 
           <h2 className="about-title">
             <span>I wanted to Design Spaces.</span>
             <span>I Ended Up Designing</span>
-            <span className="about-title-blue">
-              Digital Experiences.
-            </span>
+            <span className="about-title-blue">Digital Experiences.</span>
           </h2>
 
           <div className="about-description">
-
             <p>
               I’m Darshan Lohade, a UI/UX Designer who enjoys turning ideas
               into clear, thoughtful experiences. My journey began with an
@@ -182,21 +233,17 @@ export default function About() {
               interfaces, systems, and experiences that bring structure to
               complex ideas.
             </p>
-
           </div>
-
 
           {/* =====================================================
               READ MORE
           ===================================================== */}
 
           <div className="about-read-more-wrap">
-
             <div className="about-read-more-note">
               <span>A little more</span>
               <span>about my journeys</span>
             </div>
-
 
             {/* EXISTING CTA ARROW */}
 
@@ -220,7 +267,6 @@ export default function About() {
               />
 
               <g className="about-arrow-head">
-
                 <path
                   d="M 1 108 L 13 103"
                   stroke="currentColor"
@@ -236,10 +282,8 @@ export default function About() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
-
               </g>
             </svg>
-
 
             <button
               type="button"
@@ -248,22 +292,16 @@ export default function About() {
             >
               <span>READ MORE...</span>
 
-              <span className="about-read-more-icon">
-                ↗
-              </span>
+              <span className="about-read-more-icon">↗</span>
             </button>
-
           </div>
-
         </div>
-
 
         {/* =====================================================
             RIGHT — SWIPEABLE JOURNEY CARDS
         ===================================================== */}
 
         <div className="about-visual">
-
           <div
             className="about-portrait-stack"
             onPointerDown={handlePointerDown}
@@ -271,9 +309,7 @@ export default function About() {
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
           >
-
             {aboutPortraits.map((portrait, index) => {
-
               const relativeIndex =
                 (index - activeIndex + aboutPortraits.length) %
                 aboutPortraits.length;
@@ -282,209 +318,191 @@ export default function About() {
                 <div
                   key={portrait.id}
                   className={`about-portrait-card ${
-                    relativeIndex === 0
-                      ? "is-active"
-                      : ""
+                    relativeIndex === 0 ? "is-active" : ""
                   }`}
                   style={{
                     "--card-index": relativeIndex,
                   }}
                 >
                   <img
-                    src={portrait.src}
+                    src={cloudinaryImage(
+                      portrait.version,
+                      portrait.file,
+                      700
+                    )}
+                    srcSet={buildSrcSet(portrait)}
+                    sizes={PORTRAIT_SIZES}
                     alt={portrait.alt}
+                    loading={imagesWarm ? "eager" : "lazy"}
+                    decoding="async"
                     draggable="false"
                   />
                 </div>
               );
             })}
-
           </div>
-
         </div>
-
       </div>
-
 
       {/* =========================================================
           MY JOURNEY POPUP
       ========================================================= */}
 
       {isExpanded && (
-  <div
-    className="about-modal"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="about-modal-title"
-    onMouseDown={(event) => {
-      if (event.target === event.currentTarget) {
-        setIsExpanded(false);
-      }
-    }}
-  >
-    <div className="about-modal-inner">
-
-      {/* =====================================================
-          TOP ROW
-      ===================================================== */}
-
-      <div className="about-modal-top">
-
-        <div className="about-modal-eyebrow">
-          MY JOURNEY
-        </div>
-
-        <button
-          type="button"
-          className="about-modal-close"
-          onClick={() => setIsExpanded(false)}
-          aria-label="Close My Journey"
+        <div
+          className="about-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="about-modal-title"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setIsExpanded(false);
+            }
+          }}
         >
-          <span></span>
-          <span></span>
-        </button>
+          <div className="about-modal-inner">
+            {/* =====================================================
+                TOP ROW
+            ===================================================== */}
 
-      </div>
+            <div className="about-modal-top">
+              <div className="about-modal-eyebrow">MY JOURNEY</div>
 
+              <button
+                type="button"
+                className="about-modal-close"
+                onClick={() => setIsExpanded(false)}
+                aria-label="Close My Journey"
+              >
+                <span></span>
+                <span></span>
+              </button>
+            </div>
 
-      {/* =====================================================
-          TITLE
-      ===================================================== */}
+            {/* =====================================================
+                TITLE
+            ===================================================== */}
 
-      <h3
-        id="about-modal-title"
-        className="about-modal-title"
-      >
-        A different path led me to the same place.
-      </h3>
+            <h3 id="about-modal-title" className="about-modal-title">
+              A different path led me to the same place.
+            </h3>
 
+            {/* =====================================================
+                MAIN CONTENT
+            ===================================================== */}
 
-      {/* =====================================================
-          MAIN CONTENT
-      ===================================================== */}
+            <div className="about-modal-content">
+              {/* -----------------------------------------------------
+                  LEFT — STORY
+              ----------------------------------------------------- */}
 
-      <div className="about-modal-content">
+              <div className="about-modal-story">
+                <p>
+                  Before choosing my degree, I wanted to pursue
+                  B.Architecture. I was fascinated by the idea of designing
+                  spaces, infrastructure, and the way people interact with
+                  them. My guardians encouraged me to take a more technical
+                  path, so I chose B.Tech in Computer Science instead.
+                </p>
 
-        {/* -----------------------------------------------------
-            LEFT — STORY
-        ----------------------------------------------------- */}
+                <p>
+                  During my time in Computer Science, I gradually realized
+                  that coding wasn't something I genuinely enjoyed. I
+                  experimented with different ways of working with
+                  technology, even exploring vibe coding, but I kept coming
+                  back to the part that felt natural to me — designing.
+                  What started as an interest in physical spaces slowly
+                  became an interest in digital spaces: app architecture,
+                  interfaces, systems, and the experiences built around
+                  them.
+                </p>
 
-        <div className="about-modal-story">
+                <p>
+                  After graduation, I made a direct switch into the design
+                  industry and began building my career in UI/UX.
+                </p>
 
-          <p>
-            Before choosing my degree, I wanted to pursue B.Architecture.
-            I was fascinated by the idea of designing spaces,
-            infrastructure, and the way people interact with them.
-            My guardians encouraged me to take a more technical path,
-            so I chose B.Tech in Computer Science instead.
-          </p>
+                <p>
+                  It wasn't an easy switch. Starting a career in product
+                  design with little industry experience meant learning,
+                  experimenting, and figuring things out as I went. But it
+                  felt worth it because design keeps me curious. It gives me
+                  something to think about, something to build, and
+                  something to stay absorbed in.
+                </p>
 
-          <p>
-            During my time in Computer Science, I gradually realized that
-            coding wasn't something I genuinely enjoyed. I experimented
-            with different ways of working with technology, even exploring
-            vibe coding, but I kept coming back to the part that felt
-            natural to me — designing.
-            What started as an interest in physical spaces slowly became
-            an interest in digital spaces: app architecture, interfaces,
-            systems, and the experiences built around them.
-          </p>
+                <p>
+                  In a world where everyone seems to be racing to get ahead,
+                  design gives me a reason to pause, explore, and create.
+                </p>
 
-          <p>
-            After graduation, I made a direct switch into the design
-            industry and began building my career in UI/UX.
-          </p>
+                <p>That's the path I'm still on.</p>
+              </div>
 
-          <p>
-            It wasn't an easy switch. Starting a career in product design
-            with little industry experience meant learning, experimenting,
-            and figuring things out as I went. But it felt worth it because
-            design keeps me curious. It gives me something to think about,
-            something to build, and something to stay absorbed in.
-          </p>
+              {/* -----------------------------------------------------
+                  RIGHT — IMAGE
+              ----------------------------------------------------- */}
 
-          <p>
-            In a world where everyone seems to be racing to get ahead,
-            design gives me a reason to pause, explore, and create.
-          </p>
+              <div className="about-modal-visual">
+                {/* Handwritten annotation */}
 
-          <p>
-            That's the path I'm still on.
-          </p>
+                <div className="about-modal-image-note">
+                  <span>It’s all about</span>
+                  <span>him</span>
+                </div>
 
-        </div>
+                {/* Handwritten arrow */}
 
+                <svg
+                  className="about-modal-image-arrow"
+                  viewBox="0 0 120 90"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="
+                      M 108 8
+                      C 80 4 55 5 36 17
+                      C 19 28 12 42 10 60
+                    "
+                    stroke="currentColor"
+                    strokeWidth="1.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
 
-        {/* -----------------------------------------------------
-            RIGHT — IMAGE
-        ----------------------------------------------------- */}
+                  <g className="about-modal-image-arrow-head">
+                    <path
+                      d="M 10 60 L 19 54"
+                      stroke="currentColor"
+                      strokeWidth="1.4"
+                      strokeLinecap="round"
+                    />
 
-        <div className="about-modal-visual">
+                    <path
+                      d="M 10 60 L 17 65"
+                      stroke="currentColor"
+                      strokeWidth="1.4"
+                      strokeLinecap="round"
+                    />
+                  </g>
+                </svg>
 
-          {/* Handwritten annotation */}
+                {/* Childhood image */}
 
-          <div className="about-modal-image-note">
-            <span>It’s all about</span>
-            <span>him</span>
+                <div className="journey-childhood-card">
+                  <img
+                    src={CHILDHOOD_SRC}
+                    alt="Darshan's childhood portrait"
+                    decoding="async"
+                    draggable="false"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-
-
-          {/* Handwritten arrow */}
-
-          <svg
-            className="about-modal-image-arrow"
-            viewBox="0 0 120 90"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="
-                M 108 8
-                C 80 4 55 5 36 17
-                C 19 28 12 42 10 60
-              "
-              stroke="currentColor"
-              strokeWidth="1.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-
-            <g className="about-modal-image-arrow-head">
-              <path
-                d="M 10 60 L 19 54"
-                stroke="currentColor"
-                strokeWidth="1.4"
-                strokeLinecap="round"
-              />
-
-              <path
-                d="M 10 60 L 17 65"
-                stroke="currentColor"
-                strokeWidth="1.4"
-                strokeLinecap="round"
-              />
-            </g>
-          </svg>
-
-
-          {/* Childhood image */}
-
-          <div className="journey-childhood-card">
-
-<img
-  src="https://res.cloudinary.com/m1xt1lo4/image/upload/w_700,c_limit,f_auto,q_auto/v1791813693/childhood-portrait.png"
-  alt="Darshan's childhood portrait"
-/>
-
-          </div>
-
         </div>
-
-      </div>
-
-    </div>
-  </div>
-)}
+      )}
     </section>
   );
 }

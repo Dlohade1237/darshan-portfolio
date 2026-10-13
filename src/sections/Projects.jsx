@@ -1,5 +1,35 @@
 import React, { useEffect, useRef, useState } from "react";
 
+/* =========================================================
+   CLOUDINARY IMAGES
+   - Three sizes per image, so phones and smaller screens
+     don't download the 1200px version.
+   - f_auto serves AVIF/WebP where supported.
+   - q_auto (not eco) is kept because these are the showcase
+     images of the portfolio.
+========================================================= */
+
+const CLOUD = "https://res.cloudinary.com/m1xt1lo4/image/upload";
+
+const IMAGE_WIDTHS = [600, 900, 1200];
+
+// Matches a two-column layout on desktop, full width on tablet/mobile.
+// Adjust the breakpoint/percentage if your CSS differs.
+const IMAGE_SIZES = "(max-width: 900px) 100vw, 50vw";
+
+const cloudinaryImage = (version, file, width) =>
+  `${CLOUD}/w_${width},c_limit,f_auto,q_auto/${version}/${file}`;
+
+const buildSrcSet = (project) =>
+  IMAGE_WIDTHS.map(
+    (width) =>
+      `${cloudinaryImage(
+        project.imageVersion,
+        project.imageFile,
+        width
+      )} ${width}w`
+  ).join(", ");
+
 const projects = [
   {
     number: "01",
@@ -10,8 +40,8 @@ const projects = [
     description:
       "An end-to-end UX/UI redesign focused on information architecture, product discovery, responsive experiences, and a scalable design system for a complex transportation technology website.",
     cta: "VIEW CASE STUDY",
-    image:
-      "https://res.cloudinary.com/m1xt1lo4/image/upload/w_1200,c_limit,f_auto,q_auto/v1791826658/masstrans-project.png",
+    imageVersion: "v1791826658",
+    imageFile: "masstrans-project.png",
     layout: "normal",
     note: (
       <>
@@ -28,8 +58,8 @@ const projects = [
     description:
       "A responsive website interface designed across shopping, product discovery, product detail, brand, science, bundles, and editorial content while maintaining a consistent visual system across desktop and mobile.",
     cta: "EXPLORE PROJECT",
-    image:
-      "https://res.cloudinary.com/m1xt1lo4/image/upload/w_1200,c_limit,f_auto,q_auto/v1791826651/aceblend-project.png",
+    imageVersion: "v1791826651",
+    imageFile: "aceblend-project.png",
     layout: "reverse",
     note: (
       <>
@@ -46,8 +76,8 @@ const projects = [
     description:
       "A role-based hotel management system designed to simplify everyday workflows across reception and administration—from guest entry and bookings to room management, notifications, and error handling.",
     cta: "SEE OVERVIEW",
-    image:
-      "https://res.cloudinary.com/m1xt1lo4/image/upload/w_1200,c_limit,f_auto,q_auto/v1791826659/sushil-lodge-project.png",
+    imageVersion: "v1791826659",
+    imageFile: "sushil-lodge-project.png",
     layout: "normal",
     note: (
       <>
@@ -64,11 +94,53 @@ export default function Projects() {
   const [isScrolling, setIsScrolling] = useState(false);
   const [scrollDirection, setScrollDirection] = useState("down");
 
+  // Flips to true when the section is still ~2 screens away,
+  // so the project images are already loaded when it arrives.
+  const [imagesWarm, setImagesWarm] = useState(false);
+
+  const sectionRef = useRef(null);
   const stackRef = useRef(null);
 
   const lastScrollY = useRef(0);
   const scrollStopTimer = useRef(null);
   const animationFrame = useRef(null);
+
+  /* =========================================================
+     START LOADING IMAGES BEFORE THE SECTION IS VISIBLE
+
+     Native lazy loading only starts once an image is close to
+     the viewport. Images 02 and 03 sit far down the sticky
+     stack, so they began loading late and showed up blank.
+     Switching them to eager early fixes that without changing
+     the markup.
+  ========================================================= */
+
+  useEffect(() => {
+    const section = sectionRef.current;
+
+    if (!section) return;
+
+    if (!("IntersectionObserver" in window)) {
+      setImagesWarm(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setImagesWarm(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "2000px 0px" }
+    );
+
+    observer.observe(section);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   /* =========================================================
      SCROLL-DRIVEN PROJECT FADE
@@ -117,10 +189,7 @@ export default function Projects() {
           (secondTransitionEnd - secondTransitionStart)
       );
 
-      return Math.max(
-        0,
-        Math.min(1, fadeIn * (1 - fadeOut))
-      );
+      return Math.max(0, Math.min(1, fadeIn * (1 - fadeOut)));
     }
 
     /* -----------------------------------------------
@@ -178,10 +247,7 @@ export default function Projects() {
       const rawProgress =
         (window.scrollY - stackTop) / scrollDistance;
 
-      const clampedProgress = Math.max(
-        0,
-        Math.min(1, rawProgress)
-      );
+      const clampedProgress = Math.max(0, Math.min(1, rawProgress));
 
       setScrollProgress(clampedProgress);
 
@@ -267,22 +333,22 @@ export default function Projects() {
   }, []);
 
   return (
-    <section className="projects-section" id="work">
+    <section
+      className="projects-section"
+      id="work"
+      ref={sectionRef}
+    >
       {/* =====================================================
           INTRO
       ===================================================== */}
 
       <div className="projects-intro">
-        <div className="projects-eyebrow">
-          SELECTED WORK
-        </div>
+        <div className="projects-eyebrow">SELECTED WORK</div>
 
         <h2 className="projects-heading">
           <span>A Few Things I’ve</span>
 
-          <span className="projects-heading-blue">
-            Designed.
-          </span>
+          <span className="projects-heading-blue">Designed.</span>
         </h2>
       </div>
 
@@ -290,10 +356,7 @@ export default function Projects() {
           PROJECT STACK
       ===================================================== */}
 
-      <div
-        ref={stackRef}
-        className="projects-stack"
-      >
+      <div ref={stackRef} className="projects-stack">
         {/* ===================================================
             PROJECT SCROLL INDICATOR
 
@@ -355,44 +418,33 @@ export default function Projects() {
                 ? "project-item-reverse"
                 : "project-item-normal"
             } ${
-              activeProject === index
-                ? "project-item-active"
-                : ""
+              activeProject === index ? "project-item-active" : ""
             }`}
           >
             <div
               className="project-inner"
               style={{
-                opacity: getProjectOpacity(
-                  index,
-                  scrollProgress
-                ),
+                opacity: getProjectOpacity(index, scrollProgress),
               }}
             >
               {/* =============================================
                   LARGE NUMBER
               ============================================= */}
 
-              <div className="project-number">
-                {project.number}
-              </div>
+              <div className="project-number">{project.number}</div>
 
               {/* =============================================
                   CONTENT
               ============================================= */}
 
               <div className="project-copy">
-                <div className="project-name">
-                  {project.name}
-                </div>
+                <div className="project-name">{project.name}</div>
 
                 <div className="project-category">
                   {project.category}
                 </div>
 
-                <h3 className="project-title">
-                  {project.title}
-                </h3>
+                <h3 className="project-title">{project.title}</h3>
 
                 <p className="project-description">
                   {project.description}
@@ -403,22 +455,15 @@ export default function Projects() {
                 ========================================= */}
 
                 <div className="project-cta-wrap">
-                  <a
-                    href="#contact"
-                    className="project-cta"
-                  >
+                  <a href="#contact" className="project-cta">
                     <span>{project.cta}</span>
 
-                    <span className="project-cta-arrow">
-                      ↗
-                    </span>
+                    <span className="project-cta-arrow">↗</span>
                   </a>
 
                   {/* Handwritten text */}
 
-                  <div className="project-note">
-                    {project.note}
-                  </div>
+                  <div className="project-note">{project.note}</div>
 
                   {/* Figma exported arrow */}
 
@@ -427,6 +472,8 @@ export default function Projects() {
                     src="/assets/arrows/project-note-arrow.svg"
                     alt=""
                     aria-hidden="true"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
               </div>
@@ -444,9 +491,15 @@ export default function Projects() {
                   }`}
                 >
                   <img
-                    src={project.image}
+                    src={cloudinaryImage(
+                      project.imageVersion,
+                      project.imageFile,
+                      1200
+                    )}
+                    srcSet={buildSrcSet(project)}
+                    sizes={IMAGE_SIZES}
                     alt={`${project.name} project`}
-                    loading="lazy"
+                    loading={imagesWarm ? "eager" : "lazy"}
                     decoding="async"
                     draggable="false"
                   />

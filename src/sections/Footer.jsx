@@ -24,10 +24,7 @@ export default function Footer() {
   };
 
   const resetSocialTilt = (event) => {
-    event.currentTarget.style.setProperty(
-      "--social-tilt",
-      "0deg"
-    );
+    event.currentTarget.style.setProperty("--social-tilt", "0deg");
   };
 
   const handleSignatureMove = (event) => {
@@ -36,15 +33,9 @@ export default function Footer() {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    event.currentTarget.style.setProperty(
-      "--signature-x",
-      `${x}px`
-    );
+    event.currentTarget.style.setProperty("--signature-x", `${x}px`);
 
-    event.currentTarget.style.setProperty(
-      "--signature-y",
-      `${y}px`
-    );
+    event.currentTarget.style.setProperty("--signature-y", `${y}px`);
 
     event.currentTarget.style.setProperty(
       "--signature-glow-opacity",
@@ -59,21 +50,19 @@ export default function Footer() {
     );
   };
 
-const renderSignature = (word) => {
-  return word.split("").map((char, index) => (
-    <span key={`${char}-${index}`}>{char}</span>
-  ));
-};
+  const renderSignature = (word) => {
+    return word.split("").map((char, index) => (
+      <span key={`${char}-${index}`}>{char}</span>
+    ));
+  };
 
   return (
     <footer className="site-footer">
       <div className="footer-inner">
-
         {/* =====================================================
             FOOTER NAVIGATION
         ===================================================== */}
         <div className="footer-nav-row">
-
           <nav className="footer-nav" aria-label="Footer navigation">
             <a href="#home">HOME</a>
             <a href="#about">ABOUT</a>
@@ -89,61 +78,55 @@ const renderSignature = (word) => {
             onClick={goToTop}
             aria-label="Back to top"
           >
-            <span className="footer-top-circle">
-              ↑
-            </span>
+            <span className="footer-top-circle">↑</span>
 
-            <span className="footer-top-label">
-              BACK TO TOP
-            </span>
+            <span className="footer-top-label">BACK TO TOP</span>
           </button>
-
         </div>
-
 
         {/* =====================================================
             MAIN FOOTER STAGE
         ===================================================== */}
         <div className="footer-stage">
-
           {/* ===================================================
               LEFT — NAME + META
           =================================================== */}
           <div className="footer-identity">
-
             {/* Handwritten signature */}
-<div
-  className="footer-signature"
-  aria-label="DARSHAN LOHADE"
-  onMouseMove={handleSignatureMove}
-  onMouseLeave={handleSignatureLeave}
->
-  {/* Base signature */}
-  <div className="footer-signature-base">
-    <div className="footer-signature-line">{renderSignature("DARSHAN")}</div>
-    <div className="footer-signature-line">{renderSignature("LOHADE")}</div>
-  </div>
+            <div
+              className="footer-signature"
+              aria-label="DARSHAN LOHADE"
+              onMouseMove={handleSignatureMove}
+              onMouseLeave={handleSignatureLeave}
+            >
+              {/* Base signature */}
+              <div className="footer-signature-base">
+                <div className="footer-signature-line">
+                  {renderSignature("DARSHAN")}
+                </div>
+                <div className="footer-signature-line">
+                  {renderSignature("LOHADE")}
+                </div>
+              </div>
 
-  {/* Cursor reveal layer */}
-  <div className="footer-signature-glow" aria-hidden="true">
-    <div className="footer-signature-line">{renderSignature("DARSHAN")}</div>
-    <div className="footer-signature-line">{renderSignature("LOHADE")}</div>
-  </div>
-</div>
+              {/* Cursor reveal layer */}
+              <div className="footer-signature-glow" aria-hidden="true">
+                <div className="footer-signature-line">
+                  {renderSignature("DARSHAN")}
+                </div>
+                <div className="footer-signature-line">
+                  {renderSignature("LOHADE")}
+                </div>
+              </div>
+            </div>
 
             {/* Footer information */}
             <div className="footer-meta">
-              <p>
-                Designed &amp; built with curiosity.
-              </p>
+              <p>Designed &amp; built with curiosity.</p>
 
-              <p>
-                © 2026 Darshan Lohade • All rights reserved.
-              </p>
+              <p>© 2026 Darshan Lohade • All rights reserved.</p>
             </div>
-
           </div>
-
 
           {/* ===================================================
               CENTER — INTERACTIVE CHARACTER
@@ -152,12 +135,10 @@ const renderSignature = (word) => {
             <FooterCharacter />
           </div>
 
-
           {/* ===================================================
               RIGHT — SOCIAL LINKS
           =================================================== */}
           <div className="footer-socials">
-
             {/* Instagram */}
             <a
               href="#"
@@ -169,9 +150,10 @@ const renderSignature = (word) => {
               <img
                 src="/assets/social/Instagram.svg"
                 alt="Instagram"
+                loading="lazy"
+                decoding="async"
               />
             </a>
-
 
             {/* LinkedIn */}
             <a
@@ -184,9 +166,10 @@ const renderSignature = (word) => {
               <img
                 src="/assets/social/linkedin.svg"
                 alt="LinkedIn"
+                loading="lazy"
+                decoding="async"
               />
             </a>
-
 
             {/* Behance */}
             <a
@@ -201,13 +184,12 @@ const renderSignature = (word) => {
               <img
                 src="/assets/social/behance.svg"
                 alt="Behance"
+                loading="lazy"
+                decoding="async"
               />
             </a>
-
           </div>
-
         </div>
-
       </div>
     </footer>
   );

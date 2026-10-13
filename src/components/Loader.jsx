@@ -1,11 +1,31 @@
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 
-const LOADER_VIDEO =
-  "https://res.cloudinary.com/m1xt1lo4/video/upload/q_auto:eco/v1791813649/hero_section_bg.mp4";
+/* =========================================================
+   LOADER VIDEO
+   The video is only drawn inside a ~760x120 text mask, so it
+   doesn't need to be large. A small derivative loads fast and
+   lets the counter reach 100 sooner.
+   - w_960,c_limit → capped at 960px wide
+   - ac_none       → audio stripped (it is muted anyway)
+   - WebM first (smaller), MP4 as fallback
+========================================================= */
+
+const CLOUD = "https://res.cloudinary.com/m1xt1lo4";
+const VIDEO_VERSION = "v1791813649";
+const LOADER_T = "q_auto:eco,w_960,c_limit,ac_none";
+
+const LOADER_VIDEO_WEBM = `${CLOUD}/video/upload/${LOADER_T},f_webm/${VIDEO_VERSION}/hero_section_bg.webm`;
+const LOADER_VIDEO_MP4 = `${CLOUD}/video/upload/${LOADER_T},f_mp4/${VIDEO_VERSION}/hero_section_bg.mp4`;
 
 const LOADER_NAME = "DARSHAN LOHADE";
 const SHARD_COUNT = 18;
+
+/* The counter stops here until the video and font are ready */
+const HOLD_AT = 90;
+
+/* Never keep the visitor waiting longer than this */
+const MAX_WAIT_MS = 8000;
 
 export default function Loader({ onComplete }) {
   const loaderRef = useRef(null);
@@ -21,6 +41,9 @@ export default function Loader({ onComplete }) {
 
   const hasShatteredRef = useRef(false);
 
+  // True once the video has data and the Satoshi font is loaded
+  const readyRef = useRef(false);
+
   const [progress, setProgress] = useState(0);
 
   /* =========================================================
@@ -34,8 +57,7 @@ export default function Loader({ onComplete }) {
     if (!canvas || !video) return;
 
     if (video.readyState < 2) {
-      animationFrameRef.current =
-        requestAnimationFrame(drawCanvas);
+      animationFrameRef.current = requestAnimationFrame(drawCanvas);
       return;
     }
 
@@ -44,10 +66,7 @@ export default function Loader({ onComplete }) {
     const width = Math.max(1, Math.round(rect.width));
     const height = Math.max(1, Math.round(rect.height));
 
-    const dpr = Math.min(
-      window.devicePixelRatio || 1,
-      2
-    );
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     if (
       canvas.width !== width * dpr ||
@@ -73,9 +92,7 @@ export default function Loader({ onComplete }) {
     const videoHeight = video.videoHeight;
 
     if (!videoWidth || !videoHeight) {
-      animationFrameRef.current =
-        requestAnimationFrame(drawCanvas);
-
+      animationFrameRef.current = requestAnimationFrame(drawCanvas);
       return;
     }
 
@@ -105,13 +122,7 @@ export default function Loader({ onComplete }) {
        DRAW VIDEO
     ======================================================= */
 
-    ctx.drawImage(
-      video,
-      offsetX,
-      offsetY,
-      drawWidth,
-      drawHeight
-    );
+    ctx.drawImage(video, offsetX, offsetY, drawWidth, drawHeight);
 
     /* =======================================================
        TEXT MASK
@@ -130,16 +141,11 @@ export default function Loader({ onComplete }) {
     ctx.textBaseline = "middle";
     ctx.fillStyle = "#ffffff";
 
-    ctx.fillText(
-      LOADER_NAME,
-      width / 2,
-      height / 2
-    );
+    ctx.fillText(LOADER_NAME, width / 2, height / 2);
 
     ctx.globalCompositeOperation = "source-over";
 
-    animationFrameRef.current =
-      requestAnimationFrame(drawCanvas);
+    animationFrameRef.current = requestAnimationFrame(drawCanvas);
   };
 
   /* =========================================================
@@ -197,21 +203,62 @@ export default function Loader({ onComplete }) {
   }, []);
 
   /* =========================================================
+     TRACK REAL READINESS (video data + Satoshi font)
+     The canvas text uses Satoshi, so drawing before the font
+     loads would flash the fallback font.
+  ========================================================= */
+
+  useEffect(() => {
+    const video = videoRef.current;
+
+    const markReady = () => {
+      readyRef.current = true;
+    };
+
+    const videoReady = new Promise((resolve) => {
+      if (!video || video.readyState >= 2) {
+        resolve();
+        return;
+      }
+
+      video.addEventListener("loadeddata", resolve, { once: true });
+      video.addEventListener("error", resolve, { once: true });
+    });
+
+    const fontReady =
+      document.fonts && document.fonts.load
+        ? document.fonts.load('900 64px "Satoshi"').catch(() => {})
+        : Promise.resolve();
+
+    Promise.all([videoReady, fontReady]).then(markReady);
+
+    // Safety net: never hang if the video or font fails
+    const timeout = setTimeout(markReady, MAX_WAIT_MS);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, []);
+
+  /* =========================================================
      PROGRESS
+     Same feel as before, but it holds at HOLD_AT until the
+     video and font are actually ready, then finishes to 100.
   ========================================================= */
 
   useEffect(() => {
     let value = 0;
 
     const interval = setInterval(() => {
-      value += Math.floor(Math.random() * 7) + 3;
+      const cap = readyRef.current ? 100 : HOLD_AT;
 
-      if (value >= 100) {
-        value = 100;
-        clearInterval(interval);
-      }
+      value = Math.min(value + Math.floor(Math.random() * 7) + 3, cap);
 
       setProgress(value);
+
+      if (value >= 100) {
+        clearInterval(interval);
+      }
     }, 85);
 
     return () => {
@@ -238,6 +285,11 @@ export default function Loader({ onComplete }) {
       animationFrameRef.current = null;
     }
 
+    // The last frame is already on the canvas, so stop decoding video
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+
     const sourceWidth = canvas.width;
     const sourceHeight = canvas.height;
 
@@ -260,9 +312,7 @@ export default function Loader({ onComplete }) {
     const shardWidth = sourceWidth / SHARD_COUNT;
 
     shards.forEach((shard, index) => {
-      const shardCanvas = shard.querySelector(
-        ".site-loader-shard-canvas"
-      );
+      const shardCanvas = shard.querySelector(".site-loader-shard-canvas");
 
       if (!shardCanvas) return;
 
@@ -282,12 +332,7 @@ export default function Loader({ onComplete }) {
       shardCanvas.width = Math.ceil(actualWidth);
       shardCanvas.height = sourceHeight;
 
-      shardContext.clearRect(
-        0,
-        0,
-        shardCanvas.width,
-        shardCanvas.height
-      );
+      shardContext.clearRect(0, 0, shardCanvas.width, shardCanvas.height);
 
       shardContext.drawImage(
         sourceCanvas,
@@ -330,8 +375,7 @@ export default function Loader({ onComplete }) {
       const center = index - (SHARD_COUNT - 1) / 2;
       const direction = center < 0 ? -1 : 1;
 
-      const distanceX =
-        gsap.utils.random(280, 720) * direction;
+      const distanceX = gsap.utils.random(280, 720) * direction;
 
       const distanceY = gsap.utils.random(-320, 320);
       const rotation = gsap.utils.random(-45, 45);
@@ -458,22 +502,17 @@ export default function Loader({ onComplete }) {
         muted
         loop
         playsInline
-        preload="metadata"
+        preload="auto"
       >
-        <source
-          src={LOADER_VIDEO}
-          type="video/mp4"
-        />
+        <source src={LOADER_VIDEO_WEBM} type="video/webm" />
+        <source src={LOADER_VIDEO_MP4} type="video/mp4" />
       </video>
 
       {/* ===================================================
           VIDEO-TEXT CANVAS
       =================================================== */}
 
-      <canvas
-        ref={canvasRef}
-        className="site-loader-name-canvas"
-      />
+      <canvas ref={canvasRef} className="site-loader-name-canvas" />
 
       {/* ===================================================
           SHATTER SLICES
@@ -497,10 +536,7 @@ export default function Loader({ onComplete }) {
           PROGRESS NUMBER
       =================================================== */}
 
-      <div
-        className="site-loader-progress"
-        ref={progressRef}
-      >
+      <div className="site-loader-progress" ref={progressRef}>
         0
       </div>
 
