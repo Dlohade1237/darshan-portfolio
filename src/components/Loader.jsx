@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 
 const LOADER_VIDEO =
-  "https://res.cloudinary.com/m1xt1lo4/video/upload/q_auto/v1791813649/hero_section_bg.mp4";
+  "https://res.cloudinary.com/m1xt1lo4/video/upload/q_auto:eco/v1791813649/hero_section_bg.mp4";
 
 const LOADER_NAME = "DARSHAN LOHADE";
 const SHARD_COUNT = 18;
@@ -458,7 +458,7 @@ export default function Loader({ onComplete }) {
         muted
         loop
         playsInline
-        preload="auto"
+        preload="metadata"
       >
         <source
           src={LOADER_VIDEO}

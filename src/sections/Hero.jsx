@@ -160,10 +160,10 @@ export default function Hero() {
           playsInline
           preload="metadata"
         >
-          <source
-            src="https://res.cloudinary.com/m1xt1lo4/video/upload/q_auto/v1791813649/hero_section_bg.mp4"
-            type="video/mp4"
-          />
+<source
+  src="https://res.cloudinary.com/m1xt1lo4/video/upload/q_auto:eco/v1791813649/hero_section_bg.mp4"
+  type="video/mp4"
+/>
         </video>
       </div>
 
