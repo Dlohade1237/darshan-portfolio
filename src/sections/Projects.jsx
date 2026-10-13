@@ -1,20 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 /* =========================================================
    CLOUDINARY IMAGES
-   - Three sizes per image, so phones and smaller screens
-     don't download the 1200px version.
-   - f_auto serves AVIF/WebP where supported.
-   - q_auto (not eco) is kept because these are the showcase
-     images of the portfolio.
 ========================================================= */
 
-const CLOUD = "https://res.cloudinary.com/m1xt1lo4/image/upload";
+const CLOUD =
+  "https://res.cloudinary.com/m1xt1lo4/image/upload";
 
 const IMAGE_WIDTHS = [600, 900, 1200];
 
-// Matches a two-column layout on desktop, full width on tablet/mobile.
-// Adjust the breakpoint/percentage if your CSS differs.
 const IMAGE_SIZES = "(max-width: 900px) 100vw, 50vw";
 
 const cloudinaryImage = (version, file, width) =>
@@ -93,10 +91,11 @@ export default function Projects() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false);
   const [scrollDirection, setScrollDirection] = useState("down");
-
-  // Flips to true when the section is still ~2 screens away,
-  // so the project images are already loaded when it arrives.
   const [imagesWarm, setImagesWarm] = useState(false);
+
+  // Becomes true when the Projects section enters the viewport.
+  const [hasEnteredProjects, setHasEnteredProjects] =
+    useState(false);
 
   const sectionRef = useRef(null);
   const stackRef = useRef(null);
@@ -106,13 +105,7 @@ export default function Projects() {
   const animationFrame = useRef(null);
 
   /* =========================================================
-     START LOADING IMAGES BEFORE THE SECTION IS VISIBLE
-
-     Native lazy loading only starts once an image is close to
-     the viewport. Images 02 and 03 sit far down the sticky
-     stack, so they began loading late and showed up blank.
-     Switching them to eager early fixes that without changing
-     the markup.
+     PRELOAD PROJECT IMAGES BEFORE THE SECTION IS VISIBLE
   ========================================================= */
 
   useEffect(() => {
@@ -143,6 +136,129 @@ export default function Projects() {
   }, []);
 
   /* =========================================================
+     PROJECTS SECTION INTRO ANIMATION
+
+     The section label and heading reveal when the section
+     enters the viewport.
+  ========================================================= */
+
+  useEffect(() => {
+    const section = sectionRef.current;
+
+    if (!section) return;
+
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    if (prefersReducedMotion) {
+      setHasEnteredProjects(true);
+      return;
+    }
+
+    const context = gsap.context(() => {
+      const introTargets = section.querySelectorAll(
+        ".projects-eyebrow, .projects-heading span"
+      );
+
+      gsap.fromTo(
+        introTargets,
+        {
+          y: 28,
+          opacity: 0,
+        },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
+          stagger: 0.12,
+          ease: "power3.out",
+          clearProps: "transform,opacity",
+          scrollTrigger: {
+            trigger: section,
+            start: "top 82%",
+            once: true,
+            onEnter: () => {
+              setHasEnteredProjects(true);
+            },
+          },
+        }
+      );
+    }, section);
+
+    return () => {
+      context.revert();
+    };
+  }, []);
+
+  /* =========================================================
+     ACTIVE PROJECT TEXT ANIMATION
+
+     Animate only the active project's text, in sequence.
+     Existing project opacity transitions remain untouched.
+  ========================================================= */
+
+  useEffect(() => {
+    if (!hasEnteredProjects) return;
+
+    const section = sectionRef.current;
+
+    if (!section) return;
+
+    const activeArticle = section.querySelector(
+      `[data-project-index="${activeProject}"]`
+    );
+
+    if (!activeArticle) return;
+
+    const textTargets = activeArticle.querySelectorAll(
+      [
+        ".project-number",
+        ".project-name",
+        ".project-category",
+        ".project-title",
+        ".project-description",
+        ".project-cta-wrap",
+      ].join(", ")
+    );
+
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    if (prefersReducedMotion) {
+      gsap.set(textTargets, {
+        clearProps: "transform,opacity",
+      });
+
+      return;
+    }
+
+    // Prevent overlapping animations when switching projects.
+    gsap.killTweensOf(textTargets);
+
+    const animation = gsap.fromTo(
+      textTargets,
+      {
+        y: 24,
+        opacity: 0,
+      },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.65,
+        stagger: 0.075,
+        ease: "power3.out",
+        clearProps: "transform,opacity",
+      }
+    );
+
+    return () => {
+      animation.kill();
+    };
+  }, [activeProject, hasEnteredProjects]);
+
+  /* =========================================================
      SCROLL-DRIVEN PROJECT FADE
   ========================================================= */
 
@@ -155,14 +271,11 @@ export default function Projects() {
 
     const smoothStep = (value) => {
       const clamped = Math.max(0, Math.min(1, value));
+
       return clamped * clamped * (3 - 2 * clamped);
     };
 
-    /* -----------------------------------------------
-       PROJECT 01
-       Fades out while moving toward Project 02
-    ------------------------------------------------ */
-
+    // Project 01 fades out toward Project 02.
     if (index === 0) {
       const fadeProgress = smoothStep(
         (progress - transitionStart) /
@@ -172,12 +285,7 @@ export default function Projects() {
       return 1 - fadeProgress;
     }
 
-    /* -----------------------------------------------
-       PROJECT 02
-       Fades IN from Project 01
-       then fades OUT toward Project 03
-    ------------------------------------------------ */
-
+    // Project 02 fades in, then out toward Project 03.
     if (index === 1) {
       const fadeIn = smoothStep(
         (progress - transitionStart) /
@@ -189,14 +297,13 @@ export default function Projects() {
           (secondTransitionEnd - secondTransitionStart)
       );
 
-      return Math.max(0, Math.min(1, fadeIn * (1 - fadeOut)));
+      return Math.max(
+        0,
+        Math.min(1, fadeIn * (1 - fadeOut))
+      );
     }
 
-    /* -----------------------------------------------
-       PROJECT 03
-       Fades IN while coming from Project 02
-    ------------------------------------------------ */
-
+    // Project 03 fades in from Project 02.
     if (index === 2) {
       const fadeProgress = smoothStep(
         (progress - secondTransitionStart) /
@@ -224,21 +331,10 @@ export default function Projects() {
 
       const stackRect = stack.getBoundingClientRect();
 
-      /*
-        Document position where the project stack begins.
-      */
-
+      // Document position where the project stack begins.
       const stackTop = window.scrollY + stackRect.top;
 
-      /*
-        Total scrollable distance through the stack.
-
-        Progress:
-        0   = Project 01
-        0.5 = Project 02
-        1   = Project 03
-      */
-
+      // Total scrollable distance through the stack.
       const scrollDistance = Math.max(
         stack.offsetHeight - window.innerHeight,
         1
@@ -247,18 +343,14 @@ export default function Projects() {
       const rawProgress =
         (window.scrollY - stackTop) / scrollDistance;
 
-      const clampedProgress = Math.max(0, Math.min(1, rawProgress));
+      const clampedProgress = Math.max(
+        0,
+        Math.min(1, rawProgress)
+      );
 
       setScrollProgress(clampedProgress);
 
-      /* =====================================================
-         ACTIVE PROJECT
-
-         01 → 0.000 - 0.333
-         02 → 0.333 - 0.666
-         03 → 0.666 - 1.000
-      ===================================================== */
-
+      // Determine the active project.
       const calculatedProject = Math.min(
         projects.length - 1,
         Math.floor(clampedProgress * projects.length)
@@ -272,10 +364,7 @@ export default function Projects() {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
-      /* -----------------------------------------------------
-         SCROLL DIRECTION
-      ----------------------------------------------------- */
-
+      // Scroll direction.
       if (currentScrollY > lastScrollY.current) {
         setScrollDirection("down");
       } else if (currentScrollY < lastScrollY.current) {
@@ -284,10 +373,7 @@ export default function Projects() {
 
       lastScrollY.current = currentScrollY;
 
-      /* -----------------------------------------------------
-         SCROLLING STATE
-      ----------------------------------------------------- */
-
+      // Scrolling state.
       setIsScrolling(true);
 
       clearTimeout(scrollStopTimer.current);
@@ -296,10 +382,7 @@ export default function Projects() {
         setIsScrolling(false);
       }, 120);
 
-      /* -----------------------------------------------------
-         REQUEST FRAME
-      ----------------------------------------------------- */
-
+      // Request the next animation frame.
       if (animationFrame.current !== null) {
         return;
       }
@@ -343,12 +426,16 @@ export default function Projects() {
       ===================================================== */}
 
       <div className="projects-intro">
-        <div className="projects-eyebrow">SELECTED WORK</div>
+        <div className="projects-eyebrow">
+          SELECTED WORK
+        </div>
 
         <h2 className="projects-heading">
           <span>A Few Things I’ve</span>
 
-          <span className="projects-heading-blue">Designed.</span>
+          <span className="projects-heading-blue">
+            Designed.
+          </span>
         </h2>
       </div>
 
@@ -356,13 +443,11 @@ export default function Projects() {
           PROJECT STACK
       ===================================================== */}
 
-      <div ref={stackRef} className="projects-stack">
-        {/* ===================================================
-            PROJECT SCROLL INDICATOR
-
-            It lives INSIDE the sticky project stack so it
-            naturally enters, sticks and exits with the section.
-        =================================================== */}
+      <div
+        ref={stackRef}
+        className="projects-stack"
+      >
+        {/* PROJECT SCROLL INDICATOR */}
 
         <div
           className={`projects-scroll-indicator ${
@@ -373,9 +458,7 @@ export default function Projects() {
               : "scrolling-down"
           }`}
         >
-          {/* -------------------------------------------------
-              PROJECT LABELS
-          ------------------------------------------------- */}
+          {/* PROJECT LABELS */}
 
           <div className="projects-scroll-labels">
             {projects.map((project, index) => (
@@ -391,9 +474,7 @@ export default function Projects() {
             ))}
           </div>
 
-          {/* -------------------------------------------------
-              VERTICAL TIMELINE
-          ------------------------------------------------- */}
+          {/* VERTICAL TIMELINE */}
 
           <div className="projects-scroll-track">
             <span
@@ -418,52 +499,64 @@ export default function Projects() {
                 ? "project-item-reverse"
                 : "project-item-normal"
             } ${
-              activeProject === index ? "project-item-active" : ""
+              activeProject === index
+                ? "project-item-active"
+                : ""
             }`}
           >
             <div
               className="project-inner"
               style={{
-                opacity: getProjectOpacity(index, scrollProgress),
+                opacity: getProjectOpacity(
+                  index,
+                  scrollProgress
+                ),
               }}
             >
-              {/* =============================================
-                  LARGE NUMBER
-              ============================================= */}
+              {/* LARGE NUMBER */}
 
-              <div className="project-number">{project.number}</div>
+              <div className="project-number">
+                {project.number}
+              </div>
 
-              {/* =============================================
-                  CONTENT
-              ============================================= */}
+              {/* PROJECT CONTENT */}
 
               <div className="project-copy">
-                <div className="project-name">{project.name}</div>
+                <div className="project-name">
+                  {project.name}
+                </div>
 
                 <div className="project-category">
                   {project.category}
                 </div>
 
-                <h3 className="project-title">{project.title}</h3>
+                <h3 className="project-title">
+                  {project.title}
+                </h3>
 
                 <p className="project-description">
                   {project.description}
                 </p>
 
-                {/* =========================================
-                    CTA
-                ========================================= */}
+                {/* CTA */}
 
                 <div className="project-cta-wrap">
-                  <a href="#contact" className="project-cta">
+                  <a
+                    href="#contact"
+                    className="project-cta"
+                  >
                     <span>{project.cta}</span>
 
-                    <span className="project-cta-arrow">↗</span>
+                    <span className="project-cta-arrow">
+                      ↗
+                    </span>
                   </a>
 
                   {/* Handwritten text */}
 
-                  <div className="project-note">{project.note}</div>
+                  <div className="project-note">
+                    {project.note}
+                  </div>
 
                   {/* Figma exported arrow */}
 
@@ -478,9 +571,7 @@ export default function Projects() {
                 </div>
               </div>
 
-              {/* =============================================
-                  PROJECT VISUAL
-              ============================================= */}
+              {/* PROJECT VISUAL */}
 
               <div className="project-visual-wrap">
                 <div

@@ -1,32 +1,40 @@
 import React, { useEffect, useRef, useState } from "react";
 
+
 const milestones = [
   {
     year: "2021",
     title: "The Beginning",
     description:
-      "B.Tech in Computer Science & Engineering\nSNJB's KBJ College of Engineering, Chandwad, Dist-Nashik",
+      "Started my B.Tech in Computer Science & Engineering at SNJB's KBJ College of Engineering, building the technical foundation for my journey into digital design.",
     badge: null,
   },
   {
     year: "2025",
     title: "A New Perspective",
     description:
-      "Graduated with a B.Tech in Computer Science & Engineering.",
-    badge: "70%",
+      "Graduated with a B.Tech in Computer Science & Engineering. Pursued UI/UX Design Training through Internshala, developing my foundation in user research, wireframing, prototyping, and design systems.",
+    badge: null,
   },
   {
     year: "2026",
-    title: "The Switch",
+    title: "My First Design Role",
     description:
-      "UX/UI Designer Intern\nBits & Volts Pvt. Ltd.",
+      "UX/UI Design Intern · Bits & Volts Pvt. Ltd. · Feb–Jul 2026\nTurned design fundamentals into practice by creating user flows, wireframes, prototypes, and high-fidelity interfaces for web and mobile experiences.",
+    badge: null,
+  },
+  {
+    year: "2026",
+    title: "Growing into Product Design",
+    description:
+      "UI/UX Designer | Product Designer · Bits & Volts Pvt. Ltd. · Aug–Sep 2026\nExpanded my responsibilities across responsive design, user flows, high-fidelity interfaces, and developer handoff while exploring AI-assisted design workflows.",
     badge: null,
   },
   {
     year: "Now",
-    title: "Where I Am",
+    title: "A New Chapter",
     description:
-      "UI/UX Designer | Product Designer\nBits & Volts Pvt. Ltd., Pune",
+      "UI/UX Designer · Roots Media Marketing · Remote\nCreating thoughtful web and mobile experiences shaped by user needs, research, feedback, and brand guidelines, with AI tools supporting my design exploration and iteration process.",
     badge: null,
   },
 ];

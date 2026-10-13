@@ -27,7 +27,7 @@ export default function App() {
 
       <Header />
 
-      <Hero />
+      <Hero isLoading={isLoading} />
 
       <StatsMarquee />
 

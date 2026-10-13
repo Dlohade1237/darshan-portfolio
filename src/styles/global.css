@@ -990,7 +990,6 @@ img {
 body.mobile-menu-open {
   overflow: hidden;
 }
-
 /* =========================================================
    HERO
 ========================================================= */
@@ -1236,10 +1235,43 @@ body.mobile-menu-open {
 
 /* =========================================================
    TITLE LINES
+   Direct children only, so the word and letter spans
+   below are never forced to display: block.
 ========================================================= */
 
 .hero-title > span {
   display: block;
+}
+
+
+/* =========================================================
+   TITLE — LETTER BY LETTER ENTRY
+   Hero.jsx splits each line into words and letters.
+========================================================= */
+
+.hero-title-line {
+  display: block;
+}
+
+/*
+  Each word is the mask its letters slide up from.
+  The small padding / negative margin pair gives glyph
+  overshoot (G, S, .) room so nothing is clipped, without
+  changing the line height.
+*/
+.hero-word {
+  display: inline-block;
+
+  overflow: hidden;
+
+  vertical-align: top;
+
+  padding: 0.08em 0;
+  margin: -0.08em 0;
+}
+
+.hero-char {
+  display: inline-block;
 }
 
 

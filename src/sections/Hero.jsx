@@ -1,94 +1,94 @@
-import React, { useEffect, useRef, useState } from "react";
+
+import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 
-/* =====================================================
-   CLOUDINARY URLS
-   - w_400,c_limit  → never larger than 400px wide
-   - f_auto         → AVIF/WebP where supported
-   - q_auto:eco     → smaller files (cards are small and
-                      fade out in under a second)
-===================================================== */
+const musicImages = [
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_01.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_02.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_03.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_04.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_05.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_06.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_07.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_08.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_09.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_10.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_11.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_12.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_13.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_14.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_15.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_16.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_17.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_18.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_19.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_20.png",
+  "https://res.cloudinary.com/m1xt1lo4/image/upload/w_400,c_limit,f_auto,q_auto/v1791825483/image_21.png",
+];
 
-const CLOUD = "https://res.cloudinary.com/m1xt1lo4";
+function renderLetters(text, lineKey) {
+  return Array.from(text).map((char, index) => (
+    <span
+      className="hero-title-char"
+      key={`${lineKey}-${index}`}
+      style={{ display: "inline-block" }}
+    >
+      {char === " " ? "\u00A0" : char}
+    </span>
+  ));
+}
 
-const IMAGE_VERSION = "v1791825483";
-const IMAGE_COUNT = 21;
-
-const musicImages = Array.from({ length: IMAGE_COUNT }, (_, i) => {
-  const n = String(i + 1).padStart(2, "0");
-  return `${CLOUD}/image/upload/w_400,c_limit,f_auto,q_auto:eco/${IMAGE_VERSION}/image_${n}.png`;
-});
-
-/* Video: capped at 1920px wide, audio stripped (it is muted anyway),
-   WebM first (smaller), MP4 as fallback. */
-const VIDEO_VERSION = "v1791813649";
-const VIDEO_T = "q_auto:eco,w_1920,c_limit,ac_none";
-
-const heroVideoWebm = `${CLOUD}/video/upload/${VIDEO_T},f_webm/${VIDEO_VERSION}/hero_section_bg.webm`;
-const heroVideoMp4 = `${CLOUD}/video/upload/${VIDEO_T},f_mp4/${VIDEO_VERSION}/hero_section_bg.mp4`;
-
-/* Still frame shown instantly while the video buffers */
-const heroPoster = `${CLOUD}/video/upload/so_0,w_1280,c_limit,f_auto,q_auto/${VIDEO_VERSION}/hero_section_bg.jpg`;
-
-export default function Hero() {
+export default function Hero({ isLoading = false }) {
   const heroRef = useRef(null);
   const cardsRef = useRef([]);
   const indexRef = useRef(0);
   const lastPointRef = useRef({ x: 0, y: 0 });
 
-  // Trail images are only requested after the page has finished loading,
-  // and never on touch devices (the trail is disabled there anyway).
-  const [trailReady, setTrailReady] = useState(false);
-  const trailReadyRef = useRef(false);
-
-  /* =================================================
-     DEFER TRAIL IMAGE DOWNLOADS
-  ================================================= */
+  // Reveal the heading letter by letter after the loader finishes.
   useEffect(() => {
-    const canHover = window.matchMedia(
-      "(hover: hover) and (pointer: fine)"
-    ).matches;
+    if (isLoading) return;
 
-    if (!canHover) return;
+    const chars =
+      heroRef.current?.querySelectorAll(".hero-title-char");
 
-    let idleId;
-    let timeoutId;
+    if (!chars?.length) return;
 
-    const start = () => {
-      trailReadyRef.current = true;
-      setTrailReady(true);
-    };
-
-    const scheduleStart = () => {
-      if ("requestIdleCallback" in window) {
-        idleId = window.requestIdleCallback(start, { timeout: 3000 });
-      } else {
-        timeoutId = window.setTimeout(start, 1500);
-      }
-    };
-
-    if (document.readyState === "complete") {
-      scheduleStart();
-    } else {
-      window.addEventListener("load", scheduleStart, { once: true });
+    // Respect visitors who prefer reduced motion.
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      gsap.set(chars, {
+        clearProps: "transform,opacity",
+      });
+      return;
     }
 
+    const animation = gsap.fromTo(
+      chars,
+      {
+        y: 36,
+        opacity: 0,
+        rotateX: -45,
+        transformOrigin: "50% 100%",
+      },
+      {
+        y: 0,
+        opacity: 1,
+        rotateX: 0,
+        duration: 0.7,
+        stagger: 0.035,
+        ease: "power3.out",
+        delay: 0.05,
+        clearProps: "transform,opacity",
+      }
+    );
+
     return () => {
-      window.removeEventListener("load", scheduleStart);
-
-      if (idleId && "cancelIdleCallback" in window) {
-        window.cancelIdleCallback(idleId);
-      }
-
-      if (timeoutId) {
-        window.clearTimeout(timeoutId);
-      }
+      animation.kill();
     };
-  }, []);
+  }, [isLoading]);
 
-  /* =================================================
-     CURSOR TRAIL ANIMATION
-  ================================================= */
+  // Existing cursor image trail.
   useEffect(() => {
     const hero = heroRef.current;
 
@@ -103,9 +103,6 @@ export default function Hero() {
     const cards = cardsRef.current;
 
     const handlePointerMove = (event) => {
-      // Don't spawn empty cards before their images are requested
-      if (!trailReadyRef.current) return;
-
       const rect = hero.getBoundingClientRect();
 
       const x = event.clientX - rect.left;
@@ -113,9 +110,9 @@ export default function Hero() {
 
       const dx = x - lastPointRef.current.x;
       const dy = y - lastPointRef.current.y;
+
       const distance = Math.hypot(dx, dy);
 
-      // Controls how frequently a new album appears
       if (distance < 55) return;
 
       lastPointRef.current = { x, y };
@@ -128,13 +125,11 @@ export default function Hero() {
 
       const rotation = gsap.utils.random(-9, 9);
       const scale = gsap.utils.random(0.9, 1.04);
-
       const driftX = gsap.utils.random(-35, 35);
       const driftY = gsap.utils.random(-25, 25);
 
       gsap.killTweensOf(card);
 
-      // Initial position
       gsap.set(card, {
         x,
         y,
@@ -145,7 +140,6 @@ export default function Hero() {
         rotation: rotation * 0.4,
       });
 
-      // Album appears
       gsap.to(card, {
         opacity: 1,
         scale,
@@ -154,7 +148,6 @@ export default function Hero() {
         ease: "power3.out",
       });
 
-      // Album drifts away and fades
       gsap.to(card, {
         x: x + driftX,
         y: y + driftY,
@@ -191,16 +184,13 @@ export default function Hero() {
       hero.removeEventListener("pointerleave", handlePointerLeave);
 
       cards.forEach((card) => {
-        if (card) {
-          gsap.killTweensOf(card);
-        }
+        if (card) gsap.killTweensOf(card);
       });
     };
   }, []);
 
   return (
     <section className="hero" id="home" ref={heroRef}>
-      {/* BACKGROUND VIDEO */}
       <div className="hero-video-wrap" aria-hidden="true">
         <video
           className="hero-video"
@@ -209,19 +199,16 @@ export default function Hero() {
           loop
           playsInline
           preload="metadata"
-          poster={heroPoster}
         >
-          <source src={heroVideoWebm} type="video/webm" />
-          <source src={heroVideoMp4} type="video/mp4" />
+          <source
+            src="https://res.cloudinary.com/m1xt1lo4/video/upload/q_auto/v1791813649/hero_section_bg.mp4"
+            type="video/mp4"
+          />
         </video>
       </div>
 
-      {/* DARK READABILITY OVERLAY */}
       <div className="hero-overlay" aria-hidden="true" />
 
-      {/* MUSIC CURSOR TRAIL
-          Card wrappers always render (GSAP needs the refs);
-          the <img> src is only set once trailReady is true. */}
       <div className="hero-trail-layer" aria-hidden="true">
         {musicImages.map((src, index) => (
           <div
@@ -231,24 +218,32 @@ export default function Hero() {
               cardsRef.current[index] = element;
             }}
           >
-            {trailReady && (
-              <img
-                src={src}
-                alt=""
-                draggable="false"
-                decoding="async"
-              />
-            )}
+            <img src={src} alt="" draggable="false" />
           </div>
         ))}
       </div>
 
-      {/* HERO CONTENT */}
       <div className="hero-inner">
         <div className="hero-copy">
-          <h1 className="hero-title">
-            <span>DESIGNING WHAT</span>
-            <span>COMES NEXT.</span>
+          <h1
+            className="hero-title"
+            aria-label="DESIGNING WHAT COMES NEXT."
+          >
+            <span
+              className="hero-title-line"
+              aria-hidden="true"
+              style={{ display: "block" }}
+            >
+              {renderLetters("DESIGNING WHAT", "line-one")}
+            </span>
+
+            <span
+              className="hero-title-line"
+              aria-hidden="true"
+              style={{ display: "block" }}
+            >
+              {renderLetters("COMES NEXT.", "line-two")}
+            </span>
           </h1>
         </div>
       </div>

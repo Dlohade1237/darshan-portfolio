@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 
+import useReveal from "../hooks/useReveal"; // adjust the path if needed
+
 /* =========================================================
    CLOUDINARY IMAGES
-   - Portraits now have a 400px and a 700px version, so
+   - Portraits have a 400px and a 700px version, so
      smaller screens don't download the larger file.
    - f_auto serves AVIF/WebP where supported.
-   - Version numbers and filenames are the same as before.
 ========================================================= */
 
 const CLOUD = "https://res.cloudinary.com/m1xt1lo4/image/upload";
@@ -56,13 +57,15 @@ export default function About() {
   const isDragging = useRef(false);
 
   /* =========================================================
-     LOAD IMAGES BEFORE THE SECTION IS VISIBLE
+     ENTRY ANIMATIONS
+     Animates every element in this section marked with
+     data-reveal as it scrolls into view.
+  ========================================================= */
 
-     The six portraits are stacked in one spot and swapped by
-     swiping. With plain lazy loading, a card could still be
-     blank the first time you swipe to it. Switching them to
-     eager just before the section arrives avoids that, without
-     loading them at page start (they'd compete with the hero).
+  useReveal(sectionRef);
+
+  /* =========================================================
+     LOAD IMAGES BEFORE THE SECTION IS VISIBLE
   ========================================================= */
 
   useEffect(() => {
@@ -94,11 +97,6 @@ export default function About() {
 
   /* =========================================================
      PRELOAD THE POPUP IMAGE
-
-     The childhood portrait only exists inside the popup, so it
-     used to start downloading when you clicked READ MORE. It
-     is now fetched in the background with the portraits, so
-     the popup opens with the image already there.
   ========================================================= */
 
   useEffect(() => {
@@ -211,15 +209,21 @@ export default function About() {
         ===================================================== */}
 
         <div className="about-copy">
-          <div className="about-eyebrow">ABOUT ME</div>
+          <div className="about-eyebrow" data-reveal="up">
+            ABOUT ME
+          </div>
 
-          <h2 className="about-title">
+          <h2 className="about-title" data-reveal="lines" data-delay="0.1">
             <span>I wanted to Design Spaces.</span>
             <span>I Ended Up Designing</span>
             <span className="about-title-blue">Digital Experiences.</span>
           </h2>
 
-          <div className="about-description">
+          <div
+            className="about-description"
+            data-reveal="up"
+            data-delay="0.2"
+          >
             <p>
               I’m Darshan Lohade, a UI/UX Designer who enjoys turning ideas
               into clear, thoughtful experiences. My journey began with an
@@ -239,7 +243,11 @@ export default function About() {
               READ MORE
           ===================================================== */}
 
-          <div className="about-read-more-wrap">
+          <div
+            className="about-read-more-wrap"
+            data-reveal="up"
+            data-delay="0.3"
+          >
             <div className="about-read-more-note">
               <span>A little more</span>
               <span>about my journeys</span>
@@ -299,9 +307,11 @@ export default function About() {
 
         {/* =====================================================
             RIGHT — SWIPEABLE JOURNEY CARDS
+            The reveal is on this wrapper only, so it never
+            touches the cards' own --card-index transforms.
         ===================================================== */}
 
-        <div className="about-visual">
+        <div className="about-visual" data-reveal="rise" data-delay="0.15">
           <div
             className="about-portrait-stack"
             onPointerDown={handlePointerDown}
