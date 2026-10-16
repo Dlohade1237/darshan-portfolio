@@ -3542,6 +3542,7 @@ body.mobile-menu-open {
   }
 }
 
+@media not all {
 /* =========================================================
    PROJECTS / SELECTED WORK
 ========================================================= */
@@ -5021,6 +5022,392 @@ body.mobile-menu-open {
 
     font-size: 9px;
     letter-spacing: 24%;
+  }
+}
+}
+
+
+/* =========================================================
+   PROJECTS — ACTIVE COMING SOON SECTION
+   Previous Projects CSS is preserved above in @media not all.
+========================================================= */
+
+.projects-section {
+  position: relative;
+  width: 100%;
+  padding-bottom: clamp(64px, 8vw, 120px);
+  box-sizing: border-box;
+  overflow: clip;
+
+  background: #1a1a1a;
+  color: #ffffff;
+}
+
+/* Section introduction */
+
+.projects-intro {
+  position: relative;
+  z-index: 2;
+
+  width: calc(100% - clamp(48px, 18.4vw, 352px));
+  margin-left: clamp(24px, 9.2vw, 176px);
+  padding-top: 55px;
+
+  box-sizing: border-box;
+}
+
+.projects-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 10px 16px;
+
+  border: 1px solid #eaeaea;
+  border-radius: 999px;
+
+  background: #ffffff;
+  color: #1e1e1e;
+
+  font-family: "Caveat", cursive;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+}
+
+.projects-heading {
+  display: flex;
+  flex-direction: column;
+
+  margin: 24px 0 0;
+
+  font-family: "Satoshi", sans-serif;
+  font-size: clamp(42px, 4.2vw, 64px);
+  font-weight: 900;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+
+  color: #ffffff;
+}
+
+.projects-heading-blue {
+  color: #0248E8;
+}
+
+
+/* =========================================================
+   COMING SOON — FULL-WIDTH TYPOGRAPHIC POSTER
+========================================================= */
+
+.projects-section .projects-coming-soon {
+  position: relative;
+
+  width: 100vw;
+  max-width: none;
+  height: 540px;
+  min-height: 540px;
+
+  margin: 40px 0 80px calc(50% - 50vw);
+  padding: 0;
+
+  box-sizing: border-box;
+  overflow: hidden;
+  isolation: isolate;
+
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.projects-section .projects-coming-soon::before {
+  content: none;
+}
+
+/* Full-width positioning canvas */
+
+.projects-section .coming-soon-type-stack {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+}
+
+/* =========================================================
+   TYPOGRAPHY
+========================================================= */
+
+.projects-section .coming-soon-word {
+  position: absolute;
+  left: 50%;
+
+  width: max-content;
+  max-width: none;
+
+  margin: 0;
+  padding: 0;
+
+  font-family: "Anton", Impact, sans-serif;
+  font-size: 302px;
+  font-weight: 400;
+  line-height: 270px;
+  letter-spacing: 0;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  color: #ffffff;
+  pointer-events: none;
+}
+
+/* Top word behind the tape */
+
+.projects-section .coming-soon-word--top {
+  top: 50%;
+
+  transform: translate(-50%, -100%) scaleX(0.88);
+  transform-origin: center bottom;
+
+  z-index: 2;
+}
+
+/* Bottom word behind the tape */
+
+.projects-section .coming-soon-word--bottom {
+  top: 50%;
+
+  transform: translate(-50%, 0) scaleX(0.88);
+  transform-origin: center top;
+
+  z-index: 2;
+}
+
+/* Duplicate COMING word in front of the tape */
+
+.projects-section .coming-soon-word--front {
+  z-index: 6;
+}
+
+/* =========================================================
+   YELLOW TAPE STRIPS
+========================================================= */
+
+.projects-section .coming-soon-tape {
+  position: absolute;
+
+  left: -8%;
+  width: 116%;
+  height: 58px;
+
+  margin: 0;
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+
+  box-sizing: border-box;
+  overflow: hidden;
+
+  background: #ffdc24;
+  color: #111111;
+
+  z-index: 4;
+  pointer-events: none;
+}
+
+.projects-section
+.coming-soon-tape:not(.coming-soon-tape--reverse) {
+  top: 39%;
+  transform: rotate(-5deg);
+}
+
+.projects-section .coming-soon-tape--reverse {
+  top: 64%;
+  transform: rotate(5deg);
+}
+
+/* Moving track */
+
+.projects-section .coming-soon-tape-track {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  flex: 0 0 auto;
+  width: max-content;
+  height: 100%;
+
+  white-space: nowrap;
+
+  animation: coming-soon-marquee 24s linear infinite;
+  will-change: transform;
+}
+
+/* Keep every repeated label on one line */
+
+.projects-section .coming-soon-tape-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  flex: 0 0 auto;
+  width: max-content;
+  height: 100%;
+
+  gap: 42px;
+  padding: 0 42px 0 0;
+  margin: 0;
+
+  white-space: nowrap;
+}
+
+.projects-section .coming-soon-tape-group span {
+  display: inline-block;
+  flex: 0 0 auto;
+
+  width: auto;
+  margin: 0;
+  padding: 0;
+
+  font-family: "Satoshi", sans-serif;
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+
+  color: #111111;
+  white-space: nowrap;
+}
+
+/* Continuous movement in opposite directions */
+
+@keyframes coming-soon-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.projects-section
+.coming-soon-tape--reverse
+.coming-soon-tape-track {
+  animation-name: coming-soon-marquee-reverse;
+  animation-duration: 29s;
+}
+
+@keyframes coming-soon-marquee-reverse {
+  from {
+    transform: translateX(-50%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Hide previous poster labels and URL */
+
+.projects-section .coming-soon-poster-top,
+.projects-section .projects-coming-soon-kicker,
+.projects-section .coming-soon-poster-edition,
+.projects-section .projects-coming-soon-text,
+.projects-section .projects-coming-soon-mark {
+  display: none;
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+  .projects-section .projects-coming-soon {
+    height: 480px;
+    min-height: 480px;
+  }
+
+  .projects-section .coming-soon-word {
+    font-size: clamp(100px, 15vw, 145px);
+  }
+
+  .projects-section .coming-soon-tape {
+    height: 46px;
+  }
+
+  .projects-section .coming-soon-tape-group {
+    gap: 28px;
+    padding-right: 28px;
+  }
+
+  .projects-section .coming-soon-tape-group span {
+    font-size: 15px;
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+  .projects-section .projects-coming-soon {
+    height: 360px;
+    min-height: 360px;
+
+    margin-top: 24px;
+    margin-bottom: 48px;
+  }
+
+  .projects-section .coming-soon-word {
+    font-size: clamp(78px, 18vw, 130px);
+  }
+
+  .projects-section .coming-soon-tape {
+    left: -12%;
+    width: 124%;
+    height: 38px;
+  }
+
+  .projects-section
+  .coming-soon-tape:not(.coming-soon-tape--reverse) {
+    top: 39%;
+    transform: rotate(-6deg);
+  }
+
+  .projects-section .coming-soon-tape--reverse {
+    top: 63%;
+    transform: rotate(5deg);
+  }
+
+  .projects-section .coming-soon-tape-track {
+    animation-duration: 18s;
+  }
+
+  .projects-section
+  .coming-soon-tape--reverse
+  .coming-soon-tape-track {
+    animation-duration: 22s;
+  }
+
+  .projects-section .coming-soon-tape-group {
+    gap: 24px;
+    padding-right: 24px;
+  }
+
+  .projects-section .coming-soon-tape-group span {
+    font-size: 12px;
+  }
+}
+
+/* Respect reduced-motion preferences */
+
+@media (prefers-reduced-motion: reduce) {
+  .projects-section .coming-soon-tape-track {
+    animation: none;
   }
 }
 
@@ -6543,11 +6930,12 @@ body.mobile-menu-open {
     width: auto;
     min-height: auto;
 
-    padding: 82px 64px;
+    padding: 44px 44px;
   }
 
   .journey-card-title {
-    font-size: 38px;
+    font-size: 28px;
+    line-height: 1.3;
   }
 }
 
@@ -6562,30 +6950,30 @@ body.mobile-menu-open {
   }
 
   .journey-bg-title {
-    font-size: 46px;
+    font-size: 36px;
+    letter-spacing: 3px;
   }
 
   .journey-card {
-    width: calc(100vw - 40px);
     min-height: auto;
     width: auto;
-    padding: 44px 42px;
+    padding: 24px 26px;
 
     border-radius: 16px;
   }
 
   .journey-card-year {
-    font-size: 16px;
-    margin-bottom: 22px;
+    font-size: 12px;
+    margin-bottom: 16px;
   }
 
   .journey-card-title {
-    font-size: 32px;
+    font-size: 24px;
     margin-bottom: 22px;
   }
 
   .journey-card-desc {
-    font-size: 14px;
+    font-size: 13px;
   }
 }
 /* =========================================================
@@ -9052,6 +9440,34 @@ body.mobile-menu-open {
   }
 
 }
+
+
+/* =========================================================
+   FOOTER CHARACTER — STABLE HEAD POSITION
+   Fixes the initial head offset without changing layout.
+========================================================= */
+
+.footer-character-head {
+  /*
+    Keep the existing left, top, width and height values
+    from the responsive rules.
+
+    Do not apply translateX(-50%) here: the existing
+    component aligns the head using its left coordinate
+    and dimensions.
+  */
+  transform:
+    rotateX(var(--head-tilt-x, 0deg))
+    rotateY(var(--head-tilt-y, 0deg));
+
+  transform-origin: 50% 94%;
+  transform-style: preserve-3d;
+
+  transition: transform 150ms ease-out;
+
+  will-change: transform;
+}
+
 
 /* =========================================================
    CONTACT MODAL
